@@ -63,8 +63,15 @@
 - Per-provider error and malformed-result isolation
 - Framework-independent composition without public UI registration
 
+## Milestone 4.3 — Node context
+
+- Shared root, value, parent, path, and schema contract
+- Resolved context containing final capabilities
+- Frozen context, copied path, and frozen capability state
+- Renderer integration without a premature object model
+
 ## Later milestones
 
-Plugins, concrete policy providers, property providers, custom editors, and
-alternate renderers remain candidates. Each requires its own RFC and a
-demonstrated use case before entering the core.
+Plugins, concrete policy providers, property providers, persistent object
+models, custom editors, and alternate renderers remain candidates. Each
+requires its own RFC and a demonstrated use case before entering the core.

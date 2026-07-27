@@ -6,7 +6,7 @@ The backlog records ideas without committing them to the public API.
 - Schema-driven structural constraints
 - Permission and schema capability providers
 - Property providers
-- Plugin node context
+- Plugin API consuming NodeContext
 - Copy and paste
 - Search and filtering
 - Alternate renderers

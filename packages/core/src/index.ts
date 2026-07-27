@@ -43,3 +43,5 @@ export type {
   CapabilityProvider,
   CapabilityResolver
 } from './capability-resolver.js';
+export { resolveNodeContext } from './node-context.js';
+export type { NodeContext, ResolvedNodeContext } from './node-context.js';

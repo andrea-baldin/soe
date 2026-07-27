@@ -97,6 +97,8 @@ All operational decisions are centralized by the framework-independent
 [Capability Resolver](docs/architecture/RFC-0009-capability-resolver.md).
 Ordered policy composition is defined by
 [Capability Providers](docs/architecture/RFC-0010-capability-providers.md).
+Extensions share the immutable context defined in
+[RFC-0011](docs/architecture/RFC-0011-node-context.md).
 
 ## License
 
