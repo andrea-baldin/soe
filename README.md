@@ -113,6 +113,8 @@ Explicit container replacement is defined by
 [Safe Container Paste](docs/architecture/RFC-0017-safe-paste.md).
 Recursive inspection of special values is defined by the
 [Object Inspector](docs/architecture/RFC-0018-object-inspector.md).
+Plugin-selected domain controls are defined by
+[Custom Value Editors](docs/architecture/RFC-0019-custom-value-editors.md).
 
 ## License
 

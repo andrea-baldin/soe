@@ -10,7 +10,7 @@ The backlog records ideas without committing them to the public API.
 - Primitive paste and container merge strategies
 - Search and filtering
 - Alternate renderers
-- Custom value editors
+- Named editor registries and asynchronous editor loading
 - Localization and theming
 - Inherited properties, weak collections, and opt-in getter evaluation
 

@@ -2,6 +2,7 @@
   import { ObjectEditor } from '@soe/svelte';
   import type { ObjectEditorPlugin } from '@soe/svelte';
   import type { ObjectSchema } from '@soe/core';
+  import DateEditor from './DateEditor.svelte';
 
   let value = $state<Record<string, unknown>>({
     age: 36,
@@ -53,6 +54,24 @@
             ? {
                 description: 'Protected by the demo plugin.',
                 label: 'Full name'
+              }
+            : undefined
+      }
+    },
+    {
+      capabilities: {
+        provide: (context) =>
+          context.path.join('.') === 'profile.birthday'
+            ? { editValue: true }
+            : undefined
+      },
+      properties: {
+        provide: (context) =>
+          context.path.join('.') === 'profile.birthday'
+            ? {
+                description: 'Edited by a plugin-provided date control.',
+                editor: DateEditor,
+                label: 'Birthday'
               }
             : undefined
       }

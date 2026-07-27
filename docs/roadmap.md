@@ -119,6 +119,13 @@
 - Accessor summaries without getter invocation
 - Capability-safe inspected subtrees with circular-reference protection
 
+## Milestone 7 — Custom value editors
+
+- Typed Svelte editor contract receiving resolved NodeContext
+- Plugin property selection with capability authority
+- Explicit commits through immutable updates and history
+- Standard editor fallback and Date editor demonstration
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom
