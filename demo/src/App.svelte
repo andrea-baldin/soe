@@ -5,6 +5,7 @@
     name: 'Ada Lovelace',
     age: 36,
     active: true,
+    nickname: null,
     birthday: new Date('1815-12-10'),
     tags: new Set(['mathematics', 'computing'])
   });

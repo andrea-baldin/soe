@@ -10,13 +10,19 @@
   } from '@soe/core';
 
   type ObjectRecord = Record<string, unknown>;
+  type NullReplacementKind = 'boolean' | 'null' | 'number' | 'string';
 
   let { value = $bindable() }: { value: ObjectRecord } = $props();
 
+  const editorId = $props.id();
   const entries = $derived(Object.entries(value));
 
   function update(key: string, nextValue: EditableValue): void {
     value = { ...value, [key]: nextValue };
+  }
+
+  function fieldId(index: number): string {
+    return `${editorId}-field-${index}`;
   }
 
   function updateString(key: string, event: Event): void {
@@ -27,42 +33,82 @@
     const input = event.currentTarget as HTMLInputElement;
     const nextValue = input.valueAsNumber;
 
-    if (!Number.isNaN(nextValue)) update(key, nextValue);
+    if (Number.isFinite(nextValue)) update(key, nextValue);
+  }
+
+  function restoreNumber(currentValue: number, event: FocusEvent): void {
+    const input = event.currentTarget as HTMLInputElement;
+
+    if (!Number.isFinite(input.valueAsNumber)) {
+      input.value = String(currentValue);
+    }
   }
 
   function updateBoolean(key: string, event: Event): void {
     update(key, (event.currentTarget as HTMLInputElement).checked);
   }
+
+  function replaceNull(key: string, event: Event): void {
+    const select = event.currentTarget as HTMLSelectElement;
+    const kind = select.value as NullReplacementKind;
+
+    switch (kind) {
+      case 'boolean':
+        update(key, false);
+        break;
+      case 'number':
+        update(key, 0);
+        break;
+      case 'string':
+        update(key, '');
+        break;
+      case 'null':
+        break;
+    }
+  }
 </script>
 
 <div class="object-editor" data-soe-editor>
-  {#each entries as [key, currentValue] (key)}
+  {#each entries as [key, currentValue], index (key)}
     <div
       class="object-field"
       data-soe-field
       data-soe-kind={objectValueKind(currentValue)}
       data-soe-editable={isEditableValue(currentValue)}
     >
-      <label for={`soe-${key}`}>{key}</label>
+      <label for={fieldId(index)}>{key}</label>
 
       {#if isEditableValue(currentValue)}
-        {#if typeof currentValue === 'boolean'}
+        {#if currentValue === null}
+          <select
+            id={fieldId(index)}
+            value="null"
+            onchange={(event) => replaceNull(key, event)}
+          >
+            <option value="null">null</option>
+            <option value="string">Convert to string</option>
+            <option value="number">Convert to number</option>
+            <option value="boolean">Convert to boolean</option>
+          </select>
+        {:else if typeof currentValue === 'boolean'}
           <input
-            id={`soe-${key}`}
+            id={fieldId(index)}
             type="checkbox"
             checked={currentValue}
             onchange={(event) => updateBoolean(key, event)}
           />
         {:else if typeof currentValue === 'number'}
           <input
-            id={`soe-${key}`}
+            id={fieldId(index)}
             type="number"
+            step="any"
             value={currentValue}
             oninput={(event) => updateNumber(key, event)}
+            onblur={(event) => restoreNumber(currentValue, event)}
           />
         {:else}
           <input
-            id={`soe-${key}`}
+            id={fieldId(index)}
             type="text"
             value={currentValue}
             oninput={(event) => updateString(key, event)}
@@ -70,7 +116,7 @@
         {/if}
       {:else}
         <output
-          id={`soe-${key}`}
+          id={fieldId(index)}
           class="inspection-value"
           title={formatObjectValue(currentValue)}
         >
@@ -121,7 +167,8 @@
   }
 
   input[type='text'],
-  input[type='number'] {
+  input[type='number'],
+  select {
     box-sizing: border-box;
     width: calc(100% - 1rem);
     min-width: 0;
@@ -135,7 +182,8 @@
   }
 
   input[type='text']:focus,
-  input[type='number']:focus {
+  input[type='number']:focus,
+  select:focus {
     outline: 2px solid var(--soe-focus-ring, #84adff);
     border-color: var(--soe-focus, #155eef);
   }
@@ -145,6 +193,10 @@
     height: 1rem;
     margin-left: 0.85rem;
     accent-color: var(--soe-focus, #155eef);
+  }
+
+  select {
+    appearance: auto;
   }
 
   .inspection-value {

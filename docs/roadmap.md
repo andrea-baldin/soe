@@ -9,10 +9,10 @@
 
 ## Milestone 1 — Primitive editing
 
-- Stabilize string, number, and boolean editing
-- Define null editing behavior
-- Add component-level interaction tests
-- Verify keyboard and screen-reader behavior
+- Stable string, finite number, and boolean editing
+- Explicit null initialization
+- Component-level binding and interaction tests
+- Keyboard and accessible-name verification
 
 ## Milestone 2 — Structural editing
 

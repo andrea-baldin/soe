@@ -3,7 +3,7 @@
  * remain inspectable without making the editor fragile.
  */
 
-export type EditableValue = string | number | boolean;
+export type EditableValue = string | number | boolean | null;
 
 export type ObjectValueKind =
   | 'array'
@@ -25,8 +25,9 @@ export type ObjectValueKind =
 export function isEditableValue(value: unknown): value is EditableValue {
   return (
     typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean'
+    (typeof value === 'number' && Number.isFinite(value)) ||
+    typeof value === 'boolean' ||
+    value === null
   );
 }
 
