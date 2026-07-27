@@ -3,7 +3,7 @@
 The backlog records ideas without committing them to the public API.
 
 - Object paths and stable node identities
-- Schema-driven metadata and validation
+- Required fields and schema-driven structural constraints
 - Capability resolver
 - Property providers
 - Plugin node context

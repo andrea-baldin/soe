@@ -35,8 +35,15 @@
 - Coalesced field input revisions
 - Accessible controls and keyboard shortcuts
 
+## Milestone 3.1 — Schema and validation
+
+- Optional recursive object schema
+- Explicit primitive types override runtime inference
+- Synchronous validators with root and path context
+- Accessible inline validation without blocking editing
+
 ## Later milestones
 
-Schema knowledge, plugins, capabilities, property providers, custom editors,
-and alternate renderers remain candidates. Each requires its own RFC and a
+Plugins, capabilities, property providers, required fields, custom editors, and
+alternate renderers remain candidates. Each requires its own RFC and a
 demonstrated use case before entering the core.

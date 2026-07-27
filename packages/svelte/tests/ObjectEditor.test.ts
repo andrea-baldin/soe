@@ -448,4 +448,84 @@ describe('ObjectEditor', () => {
     expect(screen.getByRole('button', { name: 'Redo' })).toBeDisabled();
     expect(boundValue()).toEqual({ name: 'Marie' });
   });
+
+  it('uses schema types before runtime inference', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditorHarness, {
+      initial: {
+        active: 'yes',
+        age: null,
+        code: 42
+      },
+      schema: {
+        fields: {
+          active: { type: 'boolean' },
+          age: { type: 'number' },
+          code: { type: 'string' }
+        }
+      }
+    });
+
+    expect(screen.getByRole('checkbox', { name: 'active' })).not.toBeChecked();
+    expect(screen.getByRole('spinbutton', { name: 'age' })).toHaveValue(null);
+    expect(screen.getByRole('textbox', { name: 'code' })).toHaveValue('42');
+    expect(screen.getAllByRole('alert')).toHaveLength(3);
+
+    await user.click(screen.getByRole('checkbox', { name: 'active' }));
+    await user.type(screen.getByRole('spinbutton', { name: 'age' }), '36');
+    const code = screen.getByRole('textbox', { name: 'code' });
+    await user.clear(code);
+    await user.type(code, 'A-42');
+
+    expect(boundValue()).toEqual({
+      active: true,
+      age: 36,
+      code: 'A-42'
+    });
+    expect(screen.queryAllByRole('alert')).toHaveLength(0);
+  });
+
+  it('validates nested fields with root and path context', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditorHarness, {
+      initial: {
+        minimum: 10,
+        order: { price: 5 }
+      },
+      schema: {
+        fields: {
+          order: {
+            fields: {
+              price: {
+                type: 'number',
+                validate(value, context) {
+                  const root = context.root as {
+                    minimum: number;
+                  };
+                  return Number(value) < root.minimum
+                    ? `${context.path.join('.')} is too low`
+                    : undefined;
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const price = screen.getByRole('spinbutton', { name: 'order.price' });
+    expect(price).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'order.price is too low'
+    );
+
+    await user.clear(price);
+    await user.type(price, '12');
+
+    expect(price).toHaveAttribute('aria-invalid', 'false');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(boundValue()).toEqual({ minimum: 10, order: { price: 12 } });
+  });
 });

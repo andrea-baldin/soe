@@ -1,5 +1,6 @@
 <script lang="ts">
   import { ObjectEditor } from '@soe/svelte';
+  import type { ObjectSchema } from '@soe/core';
 
   let value = $state<Record<string, unknown>>({
     age: 36,
@@ -12,6 +13,28 @@
     skills: ['mathematics', 'computing'],
     tags: new Set(['pioneer', 'programmer'])
   });
+
+  const schema: ObjectSchema = {
+    fields: {
+      age: {
+        type: 'number',
+        validate: (value) =>
+          Number(value) >= 0 ? undefined : 'Age cannot be negative'
+      },
+      profile: {
+        fields: {
+          name: {
+            type: 'string',
+            validate: (value) =>
+              String(value).trim() ? undefined : 'Name is required'
+          }
+        }
+      },
+      skills: {
+        items: { type: 'string' }
+      }
+    }
+  };
 </script>
 
 <svelte:head>
@@ -52,7 +75,7 @@
       <div
         class="[--soe-border:var(--color-slate-300)] [--soe-focus:var(--color-blue-600)] [--soe-focus-ring:var(--color-blue-300)] [--soe-radius:var(--radius-lg)]"
       >
-        <ObjectEditor bind:value />
+        <ObjectEditor bind:value {schema} />
       </div>
     </section>
 

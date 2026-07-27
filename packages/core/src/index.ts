@@ -19,3 +19,11 @@ export type { ObjectPath, ObjectPathSegment } from './object-path.js';
 export { applyStructuralOperation } from './structural-operation.js';
 export type { StructuralOperation } from './structural-operation.js';
 export { ValueHistory } from './value-history.js';
+export { fieldSchemaAtPath, validateField } from './object-schema.js';
+export type {
+  FieldSchema,
+  FieldValidationContext,
+  FieldValidator,
+  ObjectSchema,
+  SchemaValueType
+} from './object-schema.js';
