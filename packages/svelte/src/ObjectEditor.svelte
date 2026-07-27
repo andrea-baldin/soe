@@ -9,6 +9,7 @@
     replaceValueAtPath,
     ValueHistory,
     type EditableValue,
+    type ObjectSchema,
     type ObjectPath,
     type StructuralOperation
   } from '@soe/core';
@@ -18,7 +19,13 @@
 
   type ObjectRecord = Record<string, unknown>;
 
-  let { value = $bindable() }: { value: ObjectRecord } = $props();
+  let {
+    value = $bindable(),
+    schema
+  }: {
+    value: ObjectRecord;
+    schema?: ObjectSchema;
+  } = $props();
 
   const editorId = $props.id();
   const history = new ValueHistory(value);
@@ -138,6 +145,8 @@
         siblingIndex={index}
         siblingCount={entries.length}
         siblingKeys={keys}
+        root={value}
+        fieldSchema={schema?.fields[String(entry.key)]}
         onupdate={update}
         onoperation={operate}
       />

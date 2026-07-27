@@ -9,7 +9,9 @@
     isEditableValue,
     objectEntries,
     objectValueKind,
+    validateField,
     type EditableValue,
+    type FieldSchema,
     type ObjectPath,
     type StructuralOperation
   } from '@soe/core';
@@ -32,6 +34,8 @@
     siblingIndex,
     siblingCount,
     siblingKeys,
+    root,
+    fieldSchema,
     onupdate,
     onoperation
   }: {
@@ -44,6 +48,8 @@
     siblingIndex: number;
     siblingCount: number;
     siblingKeys: readonly string[];
+    root: unknown;
+    fieldSchema?: FieldSchema;
     onupdate: UpdateHandler;
     onoperation: OperationHandler;
   } = $props();
@@ -58,6 +64,12 @@
   const childKeys = $derived(entries.map((entry) => String(entry.key)));
   const nodePath = $derived(formatObjectPath(path));
   const fieldId = $derived(`${editorId}-field-${encodeURIComponent(nodePath)}`);
+  const validationId = $derived(`${fieldId}-validation`);
+  const schemaType = $derived(fieldSchema?.type);
+  const validationMessage = $derived(
+    validateField(value, fieldSchema, { path, root })
+  );
+  const editable = $derived(Boolean(schemaType) || isEditableValue(value));
   const nextAncestors = $derived(
     container ? [...ancestors, value as object] : ancestors
   );
@@ -70,6 +82,17 @@
     update((event.currentTarget as HTMLInputElement).value);
   }
 
+  function stringEditorValue(): string {
+    if (typeof value === 'string') return value;
+    if (value === null || value === undefined) return '';
+
+    try {
+      return String(value);
+    } catch {
+      return '';
+    }
+  }
+
   function updateNumber(event: Event): void {
     const input = event.currentTarget as HTMLInputElement;
     const nextValue = input.valueAsNumber;
@@ -77,11 +100,14 @@
     if (Number.isFinite(nextValue)) update(nextValue);
   }
 
-  function restoreNumber(currentValue: number, event: FocusEvent): void {
+  function restoreNumber(
+    currentValue: number | undefined,
+    event: FocusEvent
+  ): void {
     const input = event.currentTarget as HTMLInputElement;
 
     if (!Number.isFinite(input.valueAsNumber)) {
-      input.value = String(currentValue);
+      input.value = currentValue === undefined ? '' : String(currentValue);
     }
   }
 
@@ -120,14 +146,21 @@
   function appendArrayItem(): void {
     onoperation({ type: 'array.append', path });
   }
+
+  function childSchema(key: string | number): FieldSchema | undefined {
+    return typeof key === 'number'
+      ? fieldSchema?.items
+      : fieldSchema?.fields?.[key];
+  }
 </script>
 
 <div
   class="object-node"
   data-soe-node
   data-soe-path={nodePath}
-  data-soe-kind={objectValueKind(value)}
-  data-soe-editable={isEditableValue(value)}
+  data-soe-kind={schemaType ?? objectValueKind(value)}
+  data-soe-editable={editable}
+  data-soe-valid={!validationMessage}
 >
   {#if container && !circular}
     <div class="object-field container-field">
@@ -138,6 +171,7 @@
         aria-expanded={expanded}
         aria-controls={`${fieldId}-children`}
         aria-label={`${expanded ? 'Collapse' : 'Expand'} ${nodePath}`}
+        aria-describedby={validationMessage ? validationId : undefined}
         onclick={() => (expanded = !expanded)}
       >
         <span aria-hidden="true" class:expanded>›</span>
@@ -166,6 +200,8 @@
             siblingIndex={index}
             siblingCount={entries.length}
             siblingKeys={childKeys}
+            {root}
+            fieldSchema={childSchema(entry.key)}
             {onupdate}
             {onoperation}
           />
@@ -187,6 +223,11 @@
         {/if}
       </div>
     {/if}
+    {#if validationMessage}
+      <p id={validationId} class="validation-error" role="alert">
+        {validationMessage}
+      </p>
+    {/if}
   {:else}
     <div class="object-field">
       <label for={fieldId}>{label}</label>
@@ -195,11 +236,13 @@
         <output id={fieldId} class="inspection-value" aria-label={nodePath}
           >Circular reference</output
         >
-      {:else if isEditableValue(value)}
-        {#if value === null}
+      {:else if editable}
+        {#if !schemaType && value === null}
           <select
             id={fieldId}
             aria-label={nodePath}
+            aria-invalid={Boolean(validationMessage)}
+            aria-describedby={validationMessage ? validationId : undefined}
             value="null"
             onchange={replaceNull}
           >
@@ -208,30 +251,44 @@
             <option value="number">Convert to number</option>
             <option value="boolean">Convert to boolean</option>
           </select>
-        {:else if typeof value === 'boolean'}
+        {:else if schemaType === 'boolean' || (!schemaType && typeof value === 'boolean')}
           <input
             id={fieldId}
             aria-label={nodePath}
             type="checkbox"
-            checked={value}
+            checked={value === true}
+            aria-invalid={Boolean(validationMessage)}
+            aria-describedby={validationMessage ? validationId : undefined}
             onchange={updateBoolean}
           />
-        {:else if typeof value === 'number'}
+        {:else if schemaType === 'number' || (!schemaType && typeof value === 'number')}
           <input
             id={fieldId}
             aria-label={nodePath}
             type="number"
             step="any"
-            {value}
+            value={typeof value === 'number' && Number.isFinite(value)
+              ? value
+              : ''}
+            aria-invalid={Boolean(validationMessage)}
+            aria-describedby={validationMessage ? validationId : undefined}
             oninput={updateNumber}
-            onblur={(event) => restoreNumber(value, event)}
+            onblur={(event) =>
+              restoreNumber(
+                typeof value === 'number' && Number.isFinite(value)
+                  ? value
+                  : undefined,
+                event
+              )}
           />
         {:else}
           <input
             id={fieldId}
             aria-label={nodePath}
             type="text"
-            {value}
+            value={stringEditorValue()}
+            aria-invalid={Boolean(validationMessage)}
+            aria-describedby={validationMessage ? validationId : undefined}
             oninput={updateString}
           />
         {/if}
@@ -255,6 +312,11 @@
         {onoperation}
       />
     </div>
+    {#if validationMessage}
+      <p id={validationId} class="validation-error" role="alert">
+        {validationMessage}
+      </p>
+    {/if}
   {/if}
 </div>
 
@@ -397,6 +459,19 @@
     margin-left: 0.5rem;
     font-size: 0.75rem;
     opacity: 0.6;
+  }
+
+  .validation-error {
+    margin: 0;
+    padding: 0.25rem 0.85rem 0.45rem;
+    color: var(--soe-error, #b42318);
+    font-size: 0.8rem;
+    border-bottom: 1px solid var(--soe-border, #d9dee7);
+  }
+
+  input[aria-invalid='true'],
+  select[aria-invalid='true'] {
+    border-color: var(--soe-error, #b42318);
   }
 
   @media (prefers-reduced-motion: reduce) {
