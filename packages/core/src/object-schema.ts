@@ -18,6 +18,7 @@ export type FieldValidator = (
 
 export interface FieldSchema {
   readonly type?: SchemaValueType;
+  readonly required?: boolean;
   readonly fields?: Readonly<Record<string, FieldSchema>>;
   readonly items?: FieldSchema;
   readonly validate?: FieldValidator;
@@ -25,6 +26,21 @@ export interface FieldSchema {
 
 export interface ObjectSchema {
   readonly fields: Readonly<Record<string, FieldSchema>>;
+}
+
+export function missingRequiredFields(
+  value: unknown,
+  fields: Readonly<Record<string, FieldSchema>> | undefined
+): readonly string[] {
+  if (!fields || typeof value !== 'object' || value === null) return [];
+
+  try {
+    return Object.entries(fields)
+      .filter(([key, field]) => field.required && !Object.hasOwn(value, key))
+      .map(([key]) => key);
+  } catch {
+    return [];
+  }
 }
 
 export function fieldSchemaAtPath(

@@ -7,6 +7,7 @@
     formatObjectValue,
     isEditableContainer,
     isEditableValue,
+    missingRequiredFields,
     objectEntries,
     objectValueKind,
     validateField,
@@ -68,6 +69,21 @@
   const schemaType = $derived(fieldSchema?.type);
   const validationMessage = $derived(
     validateField(value, fieldSchema, { path, root })
+  );
+  const missingRequired = $derived(
+    Array.isArray(value)
+      ? []
+      : missingRequiredFields(value, fieldSchema?.fields)
+  );
+  const nodeValidationMessage = $derived(
+    [
+      validationMessage,
+      missingRequired.length
+        ? `Required properties missing: ${missingRequired.join(', ')}`
+        : undefined
+    ]
+      .filter(Boolean)
+      .join('. ')
   );
   const editable = $derived(Boolean(schemaType) || isEditableValue(value));
   const nextAncestors = $derived(
@@ -160,7 +176,7 @@
   data-soe-path={nodePath}
   data-soe-kind={schemaType ?? objectValueKind(value)}
   data-soe-editable={editable}
-  data-soe-valid={!validationMessage}
+  data-soe-valid={!nodeValidationMessage}
 >
   {#if container && !circular}
     <div class="object-field container-field">
@@ -171,7 +187,7 @@
         aria-expanded={expanded}
         aria-controls={`${fieldId}-children`}
         aria-label={`${expanded ? 'Collapse' : 'Expand'} ${nodePath}`}
-        aria-describedby={validationMessage ? validationId : undefined}
+        aria-describedby={nodeValidationMessage ? validationId : undefined}
         onclick={() => (expanded = !expanded)}
       >
         <span aria-hidden="true" class:expanded>›</span>
@@ -223,9 +239,9 @@
         {/if}
       </div>
     {/if}
-    {#if validationMessage}
+    {#if nodeValidationMessage}
       <p id={validationId} class="validation-error" role="alert">
-        {validationMessage}
+        {nodeValidationMessage}
       </p>
     {/if}
   {:else}

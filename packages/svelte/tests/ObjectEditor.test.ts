@@ -528,4 +528,68 @@ describe('ObjectEditor', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(boundValue()).toEqual({ minimum: 10, order: { price: 12 } });
   });
+
+  it('reports and resolves missing required properties', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditorHarness, {
+      initial: {},
+      schema: {
+        fields: {
+          name: { required: true, type: 'string' }
+        }
+      }
+    });
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Required properties missing: name'
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: 'Add property to root' })
+    );
+    await user.type(
+      screen.getByRole('textbox', { name: 'New property name in root' }),
+      'name'
+    );
+    await user.click(screen.getByRole('button', { name: 'Add' }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Expected string');
+
+    await user.type(screen.getByRole('textbox', { name: 'name' }), 'Ada');
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(boundValue()).toEqual({ name: 'Ada' });
+  });
+
+  it('updates nested required validation through delete and undo', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditorHarness, {
+      initial: { profile: { name: 'Ada' } },
+      schema: {
+        fields: {
+          profile: {
+            fields: {
+              name: { required: true, type: 'string' }
+            }
+          }
+        }
+      }
+    });
+
+    await user.click(
+      screen.getByRole('button', { name: 'Delete profile.name' })
+    );
+    await user.click(screen.getByRole('button', { name: 'Confirm delete' }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Required properties missing: name'
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(boundValue()).toEqual({ profile: { name: 'Ada' } });
+  });
 });

@@ -5,6 +5,7 @@
   import {
     applyStructuralOperation,
     formatObjectPath,
+    missingRequiredFields,
     objectEntries,
     replaceValueAtPath,
     ValueHistory,
@@ -33,6 +34,9 @@
   let historyRevision = $state(0);
   const entries = $derived(objectEntries(value));
   const keys = $derived(entries.map((entry) => String(entry.key)));
+  const missingRequired = $derived(
+    missingRequiredFields(value, schema?.fields)
+  );
   const canUndo = $derived.by(() => {
     void historyRevision;
     return history.canUndo;
@@ -133,6 +137,11 @@
       >Redo</button
     >
   </div>
+  {#if missingRequired.length}
+    <p class="schema-error" role="alert" data-soe-required>
+      Required properties missing: {missingRequired.join(', ')}
+    </p>
+  {/if}
   <div class="object-content">
     {#each entries as entry, index (entry.key)}
       <ObjectNode
@@ -214,5 +223,13 @@
   .history-controls button:disabled {
     cursor: not-allowed;
     opacity: 0.35;
+  }
+
+  .schema-error {
+    margin: 0;
+    padding: 0.5rem 0.85rem;
+    color: var(--soe-error, #b42318);
+    font-size: 0.8rem;
+    border-bottom: 1px solid var(--soe-border, #d9dee7);
   }
 </style>

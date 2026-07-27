@@ -24,6 +24,7 @@
       profile: {
         fields: {
           name: {
+            required: true,
             type: 'string',
             validate: (value) =>
               String(value).trim() ? undefined : 'Name is required'
