@@ -1,5 +1,6 @@
 <script lang="ts">
   import { ObjectEditor } from '@soe/svelte';
+  import type { ObjectEditorPlugin } from '@soe/svelte';
   import type { ObjectSchema } from '@soe/core';
 
   let value = $state<Record<string, unknown>>({
@@ -36,6 +37,17 @@
       }
     }
   };
+
+  const plugins: readonly ObjectEditorPlugin[] = [
+    {
+      capabilities: {
+        provide: (context) =>
+          context.path.join('.') === 'profile.name'
+            ? { delete: false, editValue: false, renameKey: false }
+            : undefined
+      }
+    }
+  ];
 </script>
 
 <svelte:head>
@@ -76,7 +88,7 @@
       <div
         class="[--soe-border:var(--color-slate-300)] [--soe-focus:var(--color-blue-600)] [--soe-focus-ring:var(--color-blue-300)] [--soe-radius:var(--radius-lg)]"
       >
-        <ObjectEditor bind:value {schema} />
+        <ObjectEditor bind:value {schema} {plugins} />
       </div>
     </section>
 

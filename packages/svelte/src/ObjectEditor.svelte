@@ -4,11 +4,11 @@
    */
   import {
     applyStructuralOperation,
+    createPluginHost,
     formatObjectPath,
     missingRequiredFields,
     objectEntries,
     replaceValueAtPath,
-    resolveNodeContext,
     ValueHistory,
     type EditableValue,
     type ObjectSchema,
@@ -18,15 +18,18 @@
 
   import AddProperty from './AddProperty.svelte';
   import ObjectNode from './ObjectNode.svelte';
+  import type { ObjectEditorPlugin } from './object-editor-plugin.js';
 
   type ObjectRecord = Record<string, unknown>;
 
   let {
     value = $bindable(),
-    schema
+    schema,
+    plugins = []
   }: {
     value: ObjectRecord;
     schema?: ObjectSchema;
+    plugins?: readonly ObjectEditorPlugin[];
   } = $props();
 
   const editorId = $props.id();
@@ -38,13 +41,19 @@
   const missingRequired = $derived(
     missingRequiredFields(value, schema?.fields)
   );
+  const pluginHost = $derived(
+    createPluginHost({
+      properties: {},
+      plugins
+    })
+  );
   const rootCapabilities = $derived(
-    resolveNodeContext({
+    pluginHost.resolve({
       root: value,
       value,
       parent: undefined,
       path: []
-    }).capabilities
+    }).context.capabilities
   );
   const canUndo = $derived.by(() => {
     void historyRevision;
@@ -165,6 +174,7 @@
         root={value}
         parentValue={value}
         fieldSchema={schema?.fields[String(entry.key)]}
+        {pluginHost}
         onupdate={update}
         onoperation={operate}
       />

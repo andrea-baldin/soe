@@ -103,6 +103,8 @@ Typed metadata composition is defined by
 [Property Providers](docs/architecture/RFC-0012-property-providers.md).
 Minimal extension registration is defined by the
 [Plugin Host](docs/architecture/RFC-0013-plugin-host.md).
+Optional Svelte registration is defined by
+[ObjectEditor Plugins](docs/architecture/RFC-0014-object-editor-plugins.md).
 
 ## License
 
