@@ -1,0 +1,33 @@
+{
+  "name": "soe",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.17.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "pnpm --filter @soe/core build && pnpm --filter @soe/svelte build && pnpm --filter @soe/demo build",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck",
+    "dev": "pnpm --filter @soe/core build && pnpm --filter @soe/demo dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "typecheck": "pnpm --filter @soe/core typecheck && pnpm --filter @soe/svelte typecheck && pnpm --filter @soe/demo typecheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.1.1",
+    "eslint": "^10.8.0",
+    "eslint-plugin-svelte": "^3.22.0",
+    "globals": "17.7.0",
+    "prettier": "^3.9.6",
+    "prettier-plugin-svelte": "^4.1.1",
+    "svelte": "^5.56.8",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.65.0",
+    "vitest": "^4.1.10"
+  }
+}
