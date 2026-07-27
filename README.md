@@ -99,6 +99,8 @@ Ordered policy composition is defined by
 [Capability Providers](docs/architecture/RFC-0010-capability-providers.md).
 Extensions share the immutable context defined in
 [RFC-0011](docs/architecture/RFC-0011-node-context.md).
+Typed metadata composition is defined by
+[Property Providers](docs/architecture/RFC-0012-property-providers.md).
 
 ## License
 

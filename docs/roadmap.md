@@ -70,8 +70,15 @@
 - Frozen context, copied path, and frozen capability state
 - Renderer integration without a premature object model
 
+## Milestone 4.4 — Property providers
+
+- Generic typed property providers and resolver
+- Ordered shallow composition over resolved node context
+- Per-resolution isolation and frozen results
+- No speculative universal property catalog
+
 ## Later milestones
 
-Plugins, concrete policy providers, property providers, persistent object
-models, custom editors, and alternate renderers remain candidates. Each
-requires its own RFC and a demonstrated use case before entering the core.
+Plugins, concrete policy and property catalogs, persistent object models,
+custom editors, and alternate renderers remain candidates. Each requires its
+own RFC and a demonstrated use case before entering the core.

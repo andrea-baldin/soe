@@ -45,3 +45,8 @@ export type {
 } from './capability-resolver.js';
 export { resolveNodeContext } from './node-context.js';
 export type { NodeContext, ResolvedNodeContext } from './node-context.js';
+export { createPropertyResolver } from './property-provider.js';
+export type {
+  PropertyProvider,
+  PropertyResolver
+} from './property-provider.js';
