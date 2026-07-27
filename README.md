@@ -21,11 +21,11 @@ providing clarity, structure, and guidance without getting in the way.
 
 ## Project status
 
-SOE currently provides primitive object editing for strings, finite numbers,
-booleans, and explicitly initialized null values. Unsupported JavaScript
-values remain safely inspectable. The repository also contains its
-framework-independent value model, a demo, interaction tests, and the project
-documents that guide future work.
+SOE currently provides recursive editing for plain objects, arrays, strings,
+finite numbers, booleans, and explicitly initialized null values. Unsupported
+JavaScript values and circular references remain safely inspectable. The
+repository also contains its framework-independent path operations, a demo,
+interaction tests, and the project documents that guide future work.
 
 ## Development
 
@@ -60,6 +60,8 @@ Styling boundaries are defined in
 [RFC-0002](docs/architecture/RFC-0002-styling.md).
 Primitive editing and the precedence of future validation criteria are defined
 in [RFC-0003](docs/architecture/RFC-0003-primitive-editing.md).
+Recursive traversal and immutable paths are defined in
+[RFC-0004](docs/architecture/RFC-0004-recursive-editing.md).
 
 ## License
 

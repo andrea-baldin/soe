@@ -14,12 +14,22 @@
 - Component-level binding and interaction tests
 - Keyboard and accessible-name verification
 
-## Milestone 2 — Structural editing
+## Milestone 2.1 — Recursive editing
 
 - Recursive object and array rendering
 - Stable paths
+- Immutable updates along paths
+- Expand, collapse, and circular-reference protection
+
+## Milestone 2.2 — Structural editing
+
 - Insert, rename, and delete operations
-- Undoable change model
+- Array operations
+
+## Milestone 2.3 — History
+
+- Undoable operation model
+- Undo and redo
 
 ## Later milestones
 
