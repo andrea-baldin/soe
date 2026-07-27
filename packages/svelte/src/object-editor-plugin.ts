@@ -4,4 +4,9 @@
 
 import type { ObjectPlugin } from '@soe/core';
 
-export type ObjectEditorPlugin = ObjectPlugin<Record<string, never>>;
+export interface ObjectEditorNodeProperties {
+  readonly description?: string;
+  readonly label?: string;
+}
+
+export type ObjectEditorPlugin = ObjectPlugin<ObjectEditorNodeProperties>;

@@ -91,6 +91,13 @@
 - One shared plugin host per editor
 - No speculative renderer-property catalog
 
+## Milestone 4.7 — Renderer properties
+
+- Minimal typed `label` and `description` catalog
+- Ordered property contributions through ObjectEditor plugins
+- Canonical object paths remain unchanged
+- Accessible descriptions for primitive and container nodes
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom

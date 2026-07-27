@@ -18,7 +18,10 @@
 
   import AddProperty from './AddProperty.svelte';
   import ObjectNode from './ObjectNode.svelte';
-  import type { ObjectEditorPlugin } from './object-editor-plugin.js';
+  import type {
+    ObjectEditorNodeProperties,
+    ObjectEditorPlugin
+  } from './object-editor-plugin.js';
 
   type ObjectRecord = Record<string, unknown>;
 
@@ -42,7 +45,7 @@
     missingRequiredFields(value, schema?.fields)
   );
   const pluginHost = $derived(
-    createPluginHost({
+    createPluginHost<ObjectEditorNodeProperties>({
       properties: {},
       plugins
     })

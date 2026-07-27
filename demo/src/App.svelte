@@ -45,6 +45,15 @@
           context.path.join('.') === 'profile.name'
             ? { delete: false, editValue: false, renameKey: false }
             : undefined
+      },
+      properties: {
+        provide: (context) =>
+          context.path.join('.') === 'profile.name'
+            ? {
+                description: 'Protected by the demo plugin.',
+                label: 'Full name'
+              }
+            : undefined
       }
     }
   ];
