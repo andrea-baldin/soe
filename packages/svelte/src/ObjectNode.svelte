@@ -23,7 +23,7 @@
   import ObjectNode from './ObjectNode.svelte';
 
   type NullReplacementKind = 'boolean' | 'null' | 'number' | 'string';
-  type UpdateHandler = (path: ObjectPath, value: EditableValue) => void;
+  type UpdateHandler = (path: ObjectPath, value: unknown) => void;
   type OperationHandler = (operation: StructuralOperation) => void;
 
   let {
@@ -224,6 +224,7 @@
         {siblingCount}
         {siblingKeys}
         {onoperation}
+        onpaste={onupdate}
       />
     </div>
 
@@ -375,6 +376,7 @@
         {siblingCount}
         {siblingKeys}
         {onoperation}
+        onpaste={onupdate}
       />
     </div>
     {#if description}

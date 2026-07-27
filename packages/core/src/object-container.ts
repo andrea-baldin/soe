@@ -43,6 +43,20 @@ export function objectEntries(
   }
 }
 
+export function parseObjectContainer(
+  text: string,
+  destination: EditableContainer
+): EditableContainer | undefined {
+  try {
+    const value: unknown = JSON.parse(text);
+    if (!isEditableContainer(value)) return undefined;
+    if (Array.isArray(value) !== Array.isArray(destination)) return undefined;
+    return value;
+  } catch {
+    return undefined;
+  }
+}
+
 function readProperty(value: EditableContainer, key: string | number): unknown {
   try {
     return value[key as keyof EditableContainer];

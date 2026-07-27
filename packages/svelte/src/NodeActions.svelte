@@ -4,6 +4,8 @@
    */
   import {
     formatObjectPath,
+    isEditableContainer,
+    parseObjectContainer,
     serializeObjectValue,
     type Capabilities,
     type ObjectPath,
@@ -11,6 +13,7 @@
   } from '@soe/core';
 
   type OperationHandler = (operation: StructuralOperation) => void;
+  type PasteHandler = (path: ObjectPath, value: unknown) => void;
 
   let {
     path,
@@ -19,7 +22,8 @@
     siblingIndex,
     siblingCount,
     siblingKeys,
-    onoperation
+    onoperation,
+    onpaste
   }: {
     path: ObjectPath;
     value: unknown;
@@ -28,6 +32,7 @@
     siblingCount: number;
     siblingKeys: readonly string[];
     onoperation: OperationHandler;
+    onpaste: PasteHandler;
   } = $props();
 
   let renaming = $state(false);
@@ -99,9 +104,39 @@
       copyStatus = 'Copy failed';
     }
   }
+
+  async function paste(): Promise<void> {
+    copyStatus = '';
+
+    try {
+      if (
+        !isEditableContainer(value) ||
+        typeof navigator === 'undefined' ||
+        !navigator.clipboard?.readText
+      ) {
+        throw new Error('Clipboard unavailable');
+      }
+
+      const replacement = parseObjectContainer(
+        await navigator.clipboard.readText(),
+        value
+      );
+      if (!replacement) {
+        copyStatus = `Paste requires a JSON ${
+          Array.isArray(value) ? 'array' : 'object'
+        }`;
+        return;
+      }
+
+      onpaste(path, replacement);
+      copyStatus = 'Pasted';
+    } catch {
+      copyStatus = 'Paste failed';
+    }
+  }
 </script>
 
-{#if capabilities.copy || capabilities.renameKey || capabilities.move || capabilities.delete}
+{#if capabilities.copy || capabilities.paste || capabilities.renameKey || capabilities.move || capabilities.delete}
   <div class="node-actions" data-soe-node-actions>
     {#if renaming}
       <form onsubmit={rename}>
@@ -127,6 +162,11 @@
       {#if capabilities.copy}
         <button type="button" aria-label={`Copy ${nodePath}`} onclick={copy}
           >Copy</button
+        >
+      {/if}
+      {#if capabilities.paste}
+        <button type="button" aria-label={`Paste ${nodePath}`} onclick={paste}
+          >Paste</button
         >
       {/if}
       {#if capabilities.renameKey}

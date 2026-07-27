@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { isEditableContainer, objectEntries } from './object-container.js';
+import {
+  isEditableContainer,
+  objectEntries,
+  parseObjectContainer
+} from './object-container.js';
 
 describe('isEditableContainer', () => {
   it('accepts arrays and plain objects', () => {
@@ -34,5 +38,22 @@ describe('objectEntries', () => {
     expect(objectEntries(value)).toEqual([
       { key: 'unavailable', value: undefined }
     ]);
+  });
+});
+
+describe('parseObjectContainer', () => {
+  it('parses objects and arrays only into matching container kinds', () => {
+    expect(parseObjectContainer('{"name":"Grace"}', {})).toEqual({
+      name: 'Grace'
+    });
+    expect(parseObjectContainer('["logic"]', [])).toEqual(['logic']);
+    expect(parseObjectContainer('["logic"]', {})).toBeUndefined();
+    expect(parseObjectContainer('{"name":"Grace"}', [])).toBeUndefined();
+  });
+
+  it('rejects primitives and invalid JSON without throwing', () => {
+    expect(parseObjectContainer('"Ada"', {})).toBeUndefined();
+    expect(parseObjectContainer('null', {})).toBeUndefined();
+    expect(parseObjectContainer('{', {})).toBeUndefined();
   });
 });

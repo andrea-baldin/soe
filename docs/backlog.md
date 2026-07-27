@@ -7,7 +7,7 @@ The backlog records ideas without committing them to the public API.
 - Permission and schema capability providers
 - Concrete property catalogs and providers
 - Additional renderer properties backed by concrete use cases
-- Paste with explicit parsing and replacement semantics
+- Primitive paste and container merge strategies
 - Search and filtering
 - Alternate renderers
 - Custom value editors
