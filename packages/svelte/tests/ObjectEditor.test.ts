@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import ObjectEditor from '../src/ObjectEditor.svelte';
+import type { ObjectEditorPlugin } from '../src/object-editor-plugin.js';
 import ObjectEditorHarness from './ObjectEditorHarness.svelte';
 
 afterEach(cleanup);
@@ -14,6 +15,65 @@ function boundValue(): Record<string, unknown> {
 }
 
 describe('ObjectEditor', () => {
+  it('keeps the zero-configuration API unchanged', () => {
+    render(ObjectEditor, {
+      value: { name: 'Ada' }
+    });
+
+    expect(screen.getByRole('textbox', { name: 'name' })).toHaveValue('Ada');
+  });
+
+  it('applies capability plugins to matching nodes', async () => {
+    const user = userEvent.setup();
+    const plugins: ObjectEditorPlugin[] = [
+      {
+        capabilities: {
+          provide(context) {
+            return context.path.join('.') === 'profile.name'
+              ? {
+                  delete: false,
+                  editValue: false,
+                  renameKey: false
+                }
+              : undefined;
+          }
+        }
+      }
+    ];
+
+    render(ObjectEditorHarness, {
+      initial: {
+        profile: {
+          name: 'Ada',
+          title: 'Programmer'
+        }
+      },
+      plugins
+    });
+
+    expect(
+      screen.queryByRole('textbox', { name: 'profile.name' })
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('Ada')).toBeVisible();
+    expect(
+      screen.queryByRole('button', { name: 'Rename profile.name' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Delete profile.name' })
+    ).not.toBeInTheDocument();
+
+    const title = screen.getByRole('textbox', { name: 'profile.title' });
+    await user.clear(title);
+    await user.type(title, 'Engineer');
+
+    expect(boundValue()).toEqual({
+      profile: {
+        name: 'Ada',
+        title: 'Engineer'
+      }
+    });
+  });
+
   it('updates string, number, and boolean values through the binding', async () => {
     const user = userEvent.setup();
 

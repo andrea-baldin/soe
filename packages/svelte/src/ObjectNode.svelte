@@ -9,11 +9,11 @@
     missingRequiredFields,
     objectEntries,
     objectValueKind,
-    resolveNodeContext,
     validateField,
     type EditableValue,
     type FieldSchema,
     type ObjectPath,
+    type PluginHost,
     type StructuralOperation
   } from '@soe/core';
 
@@ -37,6 +37,7 @@
     root,
     parentValue,
     fieldSchema,
+    pluginHost,
     onupdate,
     onoperation
   }: {
@@ -51,6 +52,7 @@
     root: unknown;
     parentValue: unknown;
     fieldSchema?: FieldSchema;
+    pluginHost: PluginHost<Record<string, never>>;
     onupdate: UpdateHandler;
     onoperation: OperationHandler;
   } = $props();
@@ -86,13 +88,13 @@
       .join('. ')
   );
   const nodeContext = $derived(
-    resolveNodeContext({
+    pluginHost.resolve({
       root,
       value,
       parent: parentValue,
       path,
       schema: fieldSchema
-    })
+    }).context
   );
   const capabilities = $derived(nodeContext.capabilities);
   const editable = $derived(capabilities.editValue);
@@ -228,6 +230,7 @@
             {root}
             parentValue={value}
             fieldSchema={childSchema(entry.key)}
+            {pluginHost}
             {onupdate}
             {onoperation}
           />

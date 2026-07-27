@@ -3,3 +3,4 @@
  */
 
 export { default as ObjectEditor } from './ObjectEditor.svelte';
+export type { ObjectEditorPlugin } from './object-editor-plugin.js';

@@ -84,6 +84,13 @@
 - Immutable combined node resolution
 - No plugin lifecycle or public component registration
 
+## Milestone 4.6 — ObjectEditor plugins
+
+- Optional plugin registration without changing the default API
+- Capability plugins applied to root and recursive nodes
+- One shared plugin host per editor
+- No speculative renderer-property catalog
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom
