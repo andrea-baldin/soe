@@ -12,7 +12,8 @@
       birthday: new Date('1815-12-10')
     },
     skills: ['mathematics', 'computing'],
-    tags: new Set(['pioneer', 'programmer'])
+    tags: new Set(['pioneer', 'programmer']),
+    references: new Map([['engine', { name: 'Analytical Engine', year: 1837 }]])
   });
 
   const schema: ObjectSchema = {

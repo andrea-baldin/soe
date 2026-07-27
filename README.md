@@ -111,6 +111,8 @@ Safe clipboard output is defined by
 [Safe Value Copy](docs/architecture/RFC-0016-safe-copy.md).
 Explicit container replacement is defined by
 [Safe Container Paste](docs/architecture/RFC-0017-safe-paste.md).
+Recursive inspection of special values is defined by the
+[Object Inspector](docs/architecture/RFC-0018-object-inspector.md).
 
 ## License
 

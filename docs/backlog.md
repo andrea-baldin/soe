@@ -12,7 +12,7 @@ The backlog records ideas without committing them to the public API.
 - Alternate renderers
 - Custom value editors
 - Localization and theming
-- Inspection of property descriptors, symbols, maps, and sets
+- Inherited properties, weak collections, and opt-in getter evaluation
 
 An item moves from this list only when it is needed by the current milestone,
 fits the manifesto, and cannot be expressed cleanly by existing concepts.

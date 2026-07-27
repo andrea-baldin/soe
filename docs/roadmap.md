@@ -112,6 +112,13 @@
 - Immutable replacement integrated with undo and redo
 - Invalid input and clipboard failure isolation
 
+## Milestone 6 — Object inspector
+
+- Recursive read-only inspection of maps, sets, and class instances
+- Own string and symbol property descriptors
+- Accessor summaries without getter invocation
+- Capability-safe inspected subtrees with circular-reference protection
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom
