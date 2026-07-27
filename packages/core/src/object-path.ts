@@ -33,6 +33,30 @@ export function replaceValueAtPath<T>(
   }
 }
 
+export function valueAtPath(root: unknown, path: ObjectPath): unknown {
+  try {
+    return path.reduce<unknown>((current, segment) => {
+      if (Array.isArray(current) && typeof segment === 'number') {
+        if (segment < 0 || segment >= current.length) return undefined;
+        return current[segment];
+      }
+
+      if (
+        isEditableContainer(current) &&
+        !Array.isArray(current) &&
+        typeof segment === 'string' &&
+        Object.hasOwn(current, segment)
+      ) {
+        return (current as Record<string, unknown>)[segment];
+      }
+
+      return undefined;
+    }, root);
+  } catch {
+    return undefined;
+  }
+}
+
 interface ReplacementResult {
   changed: boolean;
   value: unknown;

@@ -10,13 +10,17 @@
     objectEntries,
     objectValueKind,
     type EditableValue,
-    type ObjectPath
+    type ObjectPath,
+    type StructuralOperation
   } from '@soe/core';
 
+  import AddProperty from './AddProperty.svelte';
+  import NodeActions from './NodeActions.svelte';
   import ObjectNode from './ObjectNode.svelte';
 
   type NullReplacementKind = 'boolean' | 'null' | 'number' | 'string';
   type UpdateHandler = (path: ObjectPath, value: EditableValue) => void;
+  type OperationHandler = (operation: StructuralOperation) => void;
 
   let {
     label,
@@ -24,14 +28,24 @@
     path,
     ancestors,
     editorId,
-    onupdate
+    parentKind,
+    siblingIndex,
+    siblingCount,
+    siblingKeys,
+    onupdate,
+    onoperation
   }: {
     label: string;
     value: unknown;
     path: ObjectPath;
     ancestors: readonly object[];
     editorId: string;
+    parentKind: 'array' | 'object';
+    siblingIndex: number;
+    siblingCount: number;
+    siblingKeys: readonly string[];
     onupdate: UpdateHandler;
+    onoperation: OperationHandler;
   } = $props();
 
   let expanded = $state(true);
@@ -41,6 +55,7 @@
   const entries = $derived.by(() =>
     isEditableContainer(value) && !circular ? objectEntries(value) : []
   );
+  const childKeys = $derived(entries.map((entry) => String(entry.key)));
   const nodePath = $derived(formatObjectPath(path));
   const fieldId = $derived(`${editorId}-field-${encodeURIComponent(nodePath)}`);
   const nextAncestors = $derived(
@@ -101,6 +116,10 @@
   function entryLabel(key: string | number): string {
     return typeof key === 'number' ? `[${key}]` : key;
   }
+
+  function appendArrayItem(): void {
+    onoperation({ type: 'array.append', path });
+  }
 </script>
 
 <div
@@ -124,24 +143,48 @@
         <span aria-hidden="true" class:expanded>›</span>
         {containerSummary()}
       </button>
+      <NodeActions
+        {path}
+        {parentKind}
+        {siblingIndex}
+        {siblingCount}
+        {siblingKeys}
+        {onoperation}
+      />
     </div>
 
     {#if expanded}
       <div id={`${fieldId}-children`} class="object-children" data-soe-children>
-        {#each entries as entry (entry.key)}
+        {#each entries as entry, index (entry.key)}
           <ObjectNode
             label={entryLabel(entry.key)}
             value={entry.value}
             path={[...path, entry.key]}
             ancestors={nextAncestors}
             {editorId}
+            parentKind={Array.isArray(value) ? 'array' : 'object'}
+            siblingIndex={index}
+            siblingCount={entries.length}
+            siblingKeys={childKeys}
             {onupdate}
+            {onoperation}
           />
         {:else}
           <p class="empty-container">
             Empty {Array.isArray(value) ? 'array' : 'object'}
           </p>
         {/each}
+        {#if Array.isArray(value)}
+          <div class="container-add">
+            <button
+              type="button"
+              aria-label={`Append item to ${nodePath}`}
+              onclick={appendArrayItem}>+ Item</button
+            >
+          </div>
+        {:else}
+          <AddProperty {path} existingKeys={childKeys} {onoperation} />
+        {/if}
       </div>
     {/if}
   {:else}
@@ -203,6 +246,14 @@
           <span class="kind">{objectValueKind(value)}</span>
         </output>
       {/if}
+      <NodeActions
+        {path}
+        {parentKind}
+        {siblingIndex}
+        {siblingCount}
+        {siblingKeys}
+        {onoperation}
+      />
     </div>
   {/if}
 </div>
@@ -214,7 +265,9 @@
 
   .object-field {
     display: grid;
-    grid-template-columns: minmax(7rem, 0.4fr) minmax(0, 1fr);
+    grid-template-columns:
+      minmax(7rem, 0.35fr) minmax(0, 1fr)
+      minmax(8rem, auto);
     align-items: center;
     min-height: var(--soe-row-height, 2.75rem);
     border-bottom: 1px solid var(--soe-border, #d9dee7);
@@ -299,6 +352,36 @@
     padding: 0.65rem 0.85rem;
     color: var(--soe-muted, #667085);
     border-bottom: 1px solid var(--soe-border, #d9dee7);
+  }
+
+  .container-add {
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid var(--soe-border, #d9dee7);
+  }
+
+  .container-add button {
+    padding: 0.3rem 0.45rem;
+    color: var(--soe-muted, #667085);
+    font: inherit;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+  }
+
+  .container-add button:focus-visible {
+    outline: 2px solid var(--soe-focus-ring, #84adff);
+    border-color: var(--soe-focus, #155eef);
+  }
+
+  @media (max-width: 40rem) {
+    .object-field {
+      grid-template-columns: minmax(5rem, 0.35fr) minmax(0, 1fr);
+    }
+
+    .object-field :global([data-soe-node-actions]) {
+      grid-column: 1 / -1;
+    }
   }
 
   .inspection-value {

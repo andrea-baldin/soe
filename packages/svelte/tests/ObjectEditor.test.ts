@@ -250,4 +250,138 @@ describe('ObjectEditor', () => {
       screen.getByRole('button', { name: 'Collapse options' })
     ).toHaveTextContent('Object(0)');
   });
+
+  it('adds root and nested properties as explicit null values', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditorHarness, {
+      initial: {
+        person: { name: 'Ada' }
+      }
+    });
+
+    await user.click(
+      screen.getByRole('button', { name: 'Add property to root' })
+    );
+    await user.type(
+      screen.getByRole('textbox', { name: 'New property name in root' }),
+      'active'
+    );
+    await user.click(screen.getByRole('button', { name: 'Add' }));
+
+    await user.click(
+      screen.getByRole('button', { name: 'Add property to person' })
+    );
+    await user.type(
+      screen.getByRole('textbox', {
+        name: 'New property name in person'
+      }),
+      'age'
+    );
+    await user.click(screen.getByRole('button', { name: 'Add' }));
+
+    expect(boundValue()).toEqual({
+      active: null,
+      person: {
+        age: null,
+        name: 'Ada'
+      }
+    });
+    expect(screen.getByRole('combobox', { name: 'person.age' })).toHaveValue(
+      'null'
+    );
+  });
+
+  it('keeps add and rename forms open when a key is invalid', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditorHarness, {
+      initial: {
+        first: 1,
+        second: 2
+      }
+    });
+
+    await user.click(
+      screen.getByRole('button', { name: 'Add property to root' })
+    );
+    await user.type(
+      screen.getByRole('textbox', { name: 'New property name in root' }),
+      'first'
+    );
+    await user.click(screen.getByRole('button', { name: 'Add' }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Property already exists'
+    );
+    expect(boundValue()).toEqual({ first: 1, second: 2 });
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await user.click(screen.getByRole('button', { name: 'Rename first' }));
+
+    const rename = screen.getByRole('textbox', {
+      name: 'New name for first'
+    });
+    await user.clear(rename);
+    await user.type(rename, 'second');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Property already exists'
+    );
+    expect(boundValue()).toEqual({ first: 1, second: 2 });
+  });
+
+  it('renames and deletes object properties through confirmed operations', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditorHarness, {
+      initial: {
+        name: 'Ada',
+        obsolete: true
+      }
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Rename name' }));
+    const rename = screen.getByRole('textbox', {
+      name: 'New name for name'
+    });
+    await user.clear(rename);
+    await user.type(rename, 'displayName');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await user.click(screen.getByRole('button', { name: 'Delete obsolete' }));
+    await user.click(screen.getByRole('button', { name: 'Confirm delete' }));
+
+    expect(boundValue()).toEqual({ displayName: 'Ada' });
+    expect(screen.getByRole('textbox', { name: 'displayName' })).toHaveValue(
+      'Ada'
+    );
+  });
+
+  it('appends, moves, and deletes array items', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditorHarness, {
+      initial: {
+        skills: ['math', 'logic']
+      }
+    });
+
+    await user.click(
+      screen.getByRole('button', { name: 'Append item to skills' })
+    );
+    expect(boundValue()).toEqual({ skills: ['math', 'logic', null] });
+
+    await user.click(screen.getByRole('button', { name: 'Move skills[1] up' }));
+    expect(boundValue()).toEqual({ skills: ['logic', 'math', null] });
+
+    await user.click(screen.getByRole('button', { name: 'Delete skills[0]' }));
+    await user.click(screen.getByRole('button', { name: 'Confirm delete' }));
+
+    expect(boundValue()).toEqual({ skills: ['math', null] });
+    expect(screen.getByRole('combobox', { name: 'skills[1]' })).toHaveValue(
+      'null'
+    );
+  });
 });
