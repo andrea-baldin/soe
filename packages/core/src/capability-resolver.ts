@@ -36,12 +36,16 @@ export const defaultCapabilityResolver: CapabilityResolver = {
   resolve(context) {
     const segment = context.path.at(-1);
     const container = isEditableContainer(context.value);
+    const editableParent = isEditableContainer(context.parent);
 
     return {
       editValue:
         Boolean(context.schema?.type) || isEditableValue(context.value),
-      renameKey: typeof segment === 'string',
-      delete: context.path.length > 0,
+      renameKey:
+        editableParent &&
+        !Array.isArray(context.parent) &&
+        typeof segment === 'string',
+      delete: editableParent && context.path.length > 0,
       insert: container,
       move: Array.isArray(context.parent) && typeof segment === 'number',
       copy: true,

@@ -16,6 +16,11 @@ export {
 } from './object-container.js';
 export type { EditableContainer, ObjectEntry } from './object-container.js';
 export {
+  inspectionEntries,
+  isInspectableContainer
+} from './object-inspection.js';
+export type { InspectionEntry } from './object-inspection.js';
+export {
   formatObjectPath,
   replaceValueAtPath,
   valueAtPath

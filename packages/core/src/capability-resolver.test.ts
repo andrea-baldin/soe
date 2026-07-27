@@ -49,6 +49,23 @@ describe('resolveCapabilities', () => {
     });
   });
 
+  it('does not offer structural mutation for inspected parents', () => {
+    const parent = new Map([['name', 'Ada']]);
+
+    expect(
+      resolveCapabilities({
+        root: { parent },
+        value: 'Ada',
+        parent,
+        path: ['parent', '[0] name']
+      })
+    ).toMatchObject({
+      delete: false,
+      move: false,
+      renameKey: false
+    });
+  });
+
   it('lets explicit schema knowledge enable value editing', () => {
     const root = { age: null };
 

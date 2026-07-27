@@ -330,6 +330,54 @@ describe('ObjectEditor', () => {
     expect(screen.queryAllByRole('textbox')).toHaveLength(0);
   });
 
+  it('recursively inspects maps, sets, instances, symbols, and accessors', async () => {
+    const user = userEvent.setup();
+    const secret = Symbol('secret');
+    let getterReads = 0;
+    const instance = Object.defineProperties(
+      new (class Profile {
+        name = 'Ada';
+      })(),
+      {
+        [secret]: { enumerable: false, value: 42 },
+        computed: {
+          enumerable: true,
+          get() {
+            getterReads += 1;
+            return 'unsafe';
+          }
+        }
+      }
+    );
+
+    render(ObjectEditor, {
+      value: {
+        instance,
+        map: new Map([['language', { name: 'Analytical Engine' }]]),
+        set: new Set(['logic'])
+      }
+    });
+
+    expect(screen.getByText('Profile(…)')).toBeVisible();
+    expect(screen.getByText('Map(1)')).toBeVisible();
+    expect(screen.getByText('Set(1)')).toBeVisible();
+    expect(screen.getByText('Symbol(secret)')).toBeVisible();
+    expect(screen.getByText('[Getter]')).toBeVisible();
+    expect(getterReads).toBe(0);
+
+    expect(
+      screen.queryByRole('textbox', { name: 'instance.name' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Delete instance.name' })
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Collapse map' }));
+    expect(screen.queryByText('Analytical Engine')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Expand map' }));
+    expect(screen.getByText('Analytical Engine')).toBeVisible();
+  });
+
   it('gives every primitive control an accessible name and unique id', () => {
     render(ObjectEditor, {
       value: {
