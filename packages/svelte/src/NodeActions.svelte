@@ -4,6 +4,7 @@
    */
   import {
     formatObjectPath,
+    serializeObjectValue,
     type Capabilities,
     type ObjectPath,
     type StructuralOperation
@@ -13,6 +14,7 @@
 
   let {
     path,
+    value,
     capabilities,
     siblingIndex,
     siblingCount,
@@ -20,6 +22,7 @@
     onoperation
   }: {
     path: ObjectPath;
+    value: unknown;
     capabilities: Capabilities;
     siblingIndex: number;
     siblingCount: number;
@@ -31,6 +34,7 @@
   let confirmingDelete = $state(false);
   let key = $state('');
   let error = $state('');
+  let copyStatus = $state('');
 
   const nodePath = $derived(formatObjectPath(path));
   const currentKey = $derived(path.at(-1));
@@ -80,9 +84,24 @@
   function move(toIndex: number): void {
     onoperation({ type: 'array.move', path, toIndex });
   }
+
+  async function copy(): Promise<void> {
+    copyStatus = '';
+
+    try {
+      if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
+        throw new Error('Clipboard unavailable');
+      }
+
+      await navigator.clipboard.writeText(serializeObjectValue(value));
+      copyStatus = 'Copied';
+    } catch {
+      copyStatus = 'Copy failed';
+    }
+  }
 </script>
 
-{#if capabilities.renameKey || capabilities.move || capabilities.delete}
+{#if capabilities.copy || capabilities.renameKey || capabilities.move || capabilities.delete}
   <div class="node-actions" data-soe-node-actions>
     {#if renaming}
       <form onsubmit={rename}>
@@ -105,6 +124,11 @@
         >Cancel</button
       >
     {:else}
+      {#if capabilities.copy}
+        <button type="button" aria-label={`Copy ${nodePath}`} onclick={copy}
+          >Copy</button
+        >
+      {/if}
       {#if capabilities.renameKey}
         <button
           type="button"
@@ -133,6 +157,9 @@
           onclick={() => (confirmingDelete = true)}>Delete</button
         >
       {/if}
+    {/if}
+    {#if copyStatus}
+      <span role="status">{copyStatus}</span>
     {/if}
   </div>
 {/if}

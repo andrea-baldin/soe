@@ -218,6 +218,7 @@
       </button>
       <NodeActions
         {path}
+        {value}
         {capabilities}
         {siblingIndex}
         {siblingCount}
@@ -368,6 +369,7 @@
       {/if}
       <NodeActions
         {path}
+        {value}
         {capabilities}
         {siblingIndex}
         {siblingCount}

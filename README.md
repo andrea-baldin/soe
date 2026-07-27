@@ -107,6 +107,8 @@ Optional Svelte registration is defined by
 [ObjectEditor Plugins](docs/architecture/RFC-0014-object-editor-plugins.md).
 The minimal presentation catalog is defined by
 [Renderer Properties](docs/architecture/RFC-0015-renderer-properties.md).
+Safe clipboard output is defined by
+[Safe Value Copy](docs/architecture/RFC-0016-safe-copy.md).
 
 ## License
 

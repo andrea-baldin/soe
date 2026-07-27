@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   formatObjectValue,
   isEditableValue,
-  objectValueKind
+  objectValueKind,
+  serializeObjectValue
 } from './object-value.js';
 
 describe('objectValueKind', () => {
@@ -56,5 +57,27 @@ describe('formatObjectValue', () => {
     });
 
     expect(formatObjectValue(value)).toBe('Unknown value');
+  });
+});
+
+describe('serializeObjectValue', () => {
+  it('copies primitive and special values as readable text', () => {
+    expect(serializeObjectValue('Ada')).toBe('Ada');
+    expect(serializeObjectValue(10n)).toBe('10n');
+    expect(serializeObjectValue(new Map([['name', 'Ada']]))).toBe('Map(1)');
+  });
+
+  it('copies editable containers as formatted JSON', () => {
+    expect(serializeObjectValue({ active: true, name: 'Ada' })).toBe(
+      '{\n  "active": true,\n  "name": "Ada"\n}'
+    );
+  });
+
+  it('falls back safely for circular containers', () => {
+    const circular: Record<string, unknown> = {};
+    circular.self = circular;
+
+    expect(() => serializeObjectValue(circular)).not.toThrow();
+    expect(serializeObjectValue(circular)).toBe('Object');
   });
 });

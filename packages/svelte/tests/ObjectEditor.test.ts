@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import ObjectEditor from '../src/ObjectEditor.svelte';
 import type { ObjectEditorPlugin } from '../src/object-editor-plugin.js';
@@ -108,6 +108,52 @@ describe('ObjectEditor', () => {
       'data-soe-path',
       'profile.name'
     );
+  });
+
+  it('copies node values through the clipboard capability', async () => {
+    const user = userEvent.setup();
+    const writeText = vi
+      .fn<(value: string) => Promise<void>>()
+      .mockResolvedValue();
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText }
+    });
+
+    render(ObjectEditor, {
+      value: {
+        profile: {
+          active: true,
+          name: 'Ada'
+        }
+      }
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Copy profile' }));
+
+    expect(writeText).toHaveBeenCalledWith(
+      '{\n  "active": true,\n  "name": "Ada"\n}'
+    );
+    expect(screen.getByRole('status')).toHaveTextContent('Copied');
+  });
+
+  it('isolates clipboard failures', async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: vi.fn().mockRejectedValue(new Error('Denied'))
+      }
+    });
+
+    render(ObjectEditor, {
+      value: { name: 'Ada' }
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Copy name' }));
+
+    expect(screen.getByRole('status')).toHaveTextContent('Copy failed');
+    expect(screen.getByRole('textbox', { name: 'name' })).toHaveValue('Ada');
   });
 
   it('applies later renderer property contributions last', () => {

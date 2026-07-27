@@ -98,6 +98,13 @@
 - Canonical object paths remain unchanged
 - Accessible descriptions for primitive and container nodes
 
+## Milestone 5.1 — Safe copy
+
+- Capability-driven copy action on every node
+- JSON serialization for editable containers
+- Safe readable fallback for special and circular values
+- Clipboard failure isolation with accessible status
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom

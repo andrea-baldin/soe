@@ -99,6 +99,31 @@ export function formatObjectValue(value: unknown): string {
   }
 }
 
+export function serializeObjectValue(value: unknown): string {
+  if (!isEditableContainerValue(value)) return formatObjectValue(value);
+
+  try {
+    const serialized = JSON.stringify(value, null, 2);
+    return typeof serialized === 'string'
+      ? serialized
+      : formatObjectValue(value);
+  } catch {
+    return formatObjectValue(value);
+  }
+}
+
+function isEditableContainerValue(value: unknown): boolean {
+  if (Array.isArray(value)) return true;
+  if (typeof value !== 'object' || value === null) return false;
+
+  try {
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === Object.prototype || prototype === null;
+  } catch {
+    return false;
+  }
+}
+
 function formatObject(value: object): string {
   const constructorName = value.constructor?.name;
 

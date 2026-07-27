@@ -5,7 +5,8 @@
 export {
   formatObjectValue,
   isEditableValue,
-  objectValueKind
+  objectValueKind,
+  serializeObjectValue
 } from './object-value.js';
 export type { EditableValue, ObjectValueKind } from './object-value.js';
 export { isEditableContainer, objectEntries } from './object-container.js';
