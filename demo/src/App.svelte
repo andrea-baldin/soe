@@ -2,12 +2,15 @@
   import { ObjectEditor } from '@soe/svelte';
 
   let value = $state<Record<string, unknown>>({
-    name: 'Ada Lovelace',
     age: 36,
     active: true,
-    nickname: null,
-    birthday: new Date('1815-12-10'),
-    tags: new Set(['mathematics', 'computing'])
+    profile: {
+      name: 'Ada Lovelace',
+      nickname: null,
+      birthday: new Date('1815-12-10')
+    },
+    skills: ['mathematics', 'computing'],
+    tags: new Set(['pioneer', 'programmer'])
   });
 </script>
 

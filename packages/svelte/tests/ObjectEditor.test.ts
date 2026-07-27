@@ -142,4 +142,112 @@ describe('ObjectEditor', () => {
     expect(amount).toHaveValue(10);
     expect(boundValue()).toEqual({ amount: 10 });
   });
+
+  it('edits nested objects and arrays through immutable paths', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditorHarness, {
+      initial: {
+        person: {
+          name: 'Ada',
+          skills: ['math', 'logic']
+        }
+      }
+    });
+
+    const name = screen.getByRole('textbox', { name: 'person.name' });
+    await user.clear(name);
+    await user.type(name, 'Grace');
+
+    const firstSkill = screen.getByRole('textbox', {
+      name: 'person.skills[0]'
+    });
+    await user.clear(firstSkill);
+    await user.type(firstSkill, 'compilers');
+
+    expect(boundValue()).toEqual({
+      person: {
+        name: 'Grace',
+        skills: ['compilers', 'logic']
+      }
+    });
+    expect(firstSkill.closest('[data-soe-node]')).toHaveAttribute(
+      'data-soe-path',
+      'person.skills[0]'
+    );
+  });
+
+  it('collapses and expands containers with a native button', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditor, {
+      value: {
+        person: { name: 'Ada' }
+      }
+    });
+
+    const toggle = screen.getByRole('button', { name: 'Collapse person' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('textbox', { name: 'person.name' })).toBeVisible();
+
+    await user.click(toggle);
+
+    expect(
+      screen.getByRole('button', { name: 'Expand person' })
+    ).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('textbox', { name: 'person.name' })).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Expand person' }));
+
+    expect(screen.getByRole('textbox', { name: 'person.name' })).toBeVisible();
+  });
+
+  it('stops at circular references without throwing', () => {
+    const recursive: Record<string, unknown> = { name: 'root' };
+    recursive.self = recursive;
+
+    render(ObjectEditor, {
+      value: recursive
+    });
+
+    expect(screen.getByRole('textbox', { name: 'name' })).toHaveValue('root');
+    expect(screen.getByText('Circular reference')).toBeVisible();
+  });
+
+  it('renders shared references when they are not circular ancestors', () => {
+    const shared = { name: 'shared' };
+
+    render(ObjectEditor, {
+      value: {
+        first: shared,
+        second: shared
+      }
+    });
+
+    expect(screen.getByRole('textbox', { name: 'first.name' })).toHaveValue(
+      'shared'
+    );
+    expect(screen.getByRole('textbox', { name: 'second.name' })).toHaveValue(
+      'shared'
+    );
+    expect(screen.queryByText('Circular reference')).toBeNull();
+  });
+
+  it('renders empty nested containers without treating them as primitives', () => {
+    render(ObjectEditor, {
+      value: {
+        children: [],
+        options: {}
+      }
+    });
+
+    expect(screen.getByText('Empty array')).toBeVisible();
+    expect(screen.getByText('Empty object')).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: 'Collapse children' })
+    ).toHaveTextContent('Array(0)');
+    expect(
+      screen.getByRole('button', { name: 'Collapse options' })
+    ).toHaveTextContent('Object(0)');
+  });
 });
