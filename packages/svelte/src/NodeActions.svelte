@@ -4,6 +4,7 @@
    */
   import {
     formatObjectPath,
+    type Capabilities,
     type ObjectPath,
     type StructuralOperation
   } from '@soe/core';
@@ -12,14 +13,14 @@
 
   let {
     path,
-    parentKind,
+    capabilities,
     siblingIndex,
     siblingCount,
     siblingKeys,
     onoperation
   }: {
     path: ObjectPath;
-    parentKind: 'array' | 'object';
+    capabilities: Capabilities;
     siblingIndex: number;
     siblingCount: number;
     siblingKeys: readonly string[];
@@ -81,54 +82,60 @@
   }
 </script>
 
-<div class="node-actions" data-soe-node-actions>
-  {#if renaming}
-    <form onsubmit={rename}>
-      <input
-        aria-label={`New name for ${nodePath}`}
-        aria-invalid={Boolean(error)}
-        bind:value={key}
-      />
-      <button type="submit">Save</button>
-      <button type="button" onclick={cancelRename}>Cancel</button>
-      {#if error}
-        <span role="alert">{error}</span>
-      {/if}
-    </form>
-  {:else if confirmingDelete}
-    <button type="button" class="danger" onclick={remove}>Confirm delete</button
-    >
-    <button type="button" onclick={() => (confirmingDelete = false)}
-      >Cancel</button
-    >
-  {:else}
-    {#if parentKind === 'object'}
-      <button
-        type="button"
-        aria-label={`Rename ${nodePath}`}
-        onclick={beginRename}>Rename</button
+{#if capabilities.renameKey || capabilities.move || capabilities.delete}
+  <div class="node-actions" data-soe-node-actions>
+    {#if renaming}
+      <form onsubmit={rename}>
+        <input
+          aria-label={`New name for ${nodePath}`}
+          aria-invalid={Boolean(error)}
+          bind:value={key}
+        />
+        <button type="submit">Save</button>
+        <button type="button" onclick={cancelRename}>Cancel</button>
+        {#if error}
+          <span role="alert">{error}</span>
+        {/if}
+      </form>
+    {:else if confirmingDelete}
+      <button type="button" class="danger" onclick={remove}
+        >Confirm delete</button
+      >
+      <button type="button" onclick={() => (confirmingDelete = false)}
+        >Cancel</button
       >
     {:else}
-      <button
-        type="button"
-        aria-label={`Move ${nodePath} up`}
-        disabled={siblingIndex === 0}
-        onclick={() => move(siblingIndex - 1)}>↑</button
-      >
-      <button
-        type="button"
-        aria-label={`Move ${nodePath} down`}
-        disabled={siblingIndex === siblingCount - 1}
-        onclick={() => move(siblingIndex + 1)}>↓</button
-      >
+      {#if capabilities.renameKey}
+        <button
+          type="button"
+          aria-label={`Rename ${nodePath}`}
+          onclick={beginRename}>Rename</button
+        >
+      {/if}
+      {#if capabilities.move}
+        <button
+          type="button"
+          aria-label={`Move ${nodePath} up`}
+          disabled={siblingIndex === 0}
+          onclick={() => move(siblingIndex - 1)}>↑</button
+        >
+        <button
+          type="button"
+          aria-label={`Move ${nodePath} down`}
+          disabled={siblingIndex === siblingCount - 1}
+          onclick={() => move(siblingIndex + 1)}>↓</button
+        >
+      {/if}
+      {#if capabilities.delete}
+        <button
+          type="button"
+          aria-label={`Delete ${nodePath}`}
+          onclick={() => (confirmingDelete = true)}>Delete</button
+        >
+      {/if}
     {/if}
-    <button
-      type="button"
-      aria-label={`Delete ${nodePath}`}
-      onclick={() => (confirmingDelete = true)}>Delete</button
-    >
-  {/if}
-</div>
+  </div>
+{/if}
 
 <style>
   .node-actions {

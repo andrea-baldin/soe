@@ -49,8 +49,15 @@
 - Reactive updates across structural editing and history
 - Separation between validation and operation permissions
 
+## Milestone 4.1 — Capability resolver
+
+- Framework-independent capability vocabulary and node context
+- Conservative default and failure fallback
+- Value, structural, and movement controls driven by resolved capability
+- No additional public component properties
+
 ## Later milestones
 
-Plugins, capabilities, property providers, custom editors, and alternate
-renderers remain candidates. Each requires its own RFC and a demonstrated use
-case before entering the core.
+Plugins, capability providers, property providers, custom editors, and
+alternate renderers remain candidates. Each requires its own RFC and a
+demonstrated use case before entering the core.
