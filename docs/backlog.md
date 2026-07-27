@@ -4,7 +4,7 @@ The backlog records ideas without committing them to the public API.
 
 - Object paths and stable node identities
 - Schema-driven structural constraints
-- Capability resolver
+- Capability provider composition and permission policies
 - Property providers
 - Plugin node context
 - Copy and paste

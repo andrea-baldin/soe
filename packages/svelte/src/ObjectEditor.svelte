@@ -8,6 +8,7 @@
     missingRequiredFields,
     objectEntries,
     replaceValueAtPath,
+    resolveCapabilities,
     ValueHistory,
     type EditableValue,
     type ObjectSchema,
@@ -36,6 +37,14 @@
   const keys = $derived(entries.map((entry) => String(entry.key)));
   const missingRequired = $derived(
     missingRequiredFields(value, schema?.fields)
+  );
+  const rootCapabilities = $derived(
+    resolveCapabilities({
+      root: value,
+      value,
+      parent: undefined,
+      path: []
+    })
   );
   const canUndo = $derived.by(() => {
     void historyRevision;
@@ -150,11 +159,11 @@
         path={[entry.key]}
         ancestors={[value]}
         {editorId}
-        parentKind="object"
         siblingIndex={index}
         siblingCount={entries.length}
         siblingKeys={keys}
         root={value}
+        parentValue={value}
         fieldSchema={schema?.fields[String(entry.key)]}
         onupdate={update}
         onoperation={operate}
@@ -162,7 +171,9 @@
     {:else}
       <p class="empty-state">Empty object</p>
     {/each}
-    <AddProperty path={[]} existingKeys={keys} onoperation={operate} />
+    {#if rootCapabilities.insert}
+      <AddProperty path={[]} existingKeys={keys} onoperation={operate} />
+    {/if}
   </div>
 </div>
 

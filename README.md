@@ -93,6 +93,8 @@ Schema precedence and validation boundaries are defined in
 [RFC-0007](docs/architecture/RFC-0007-schema-validation.md).
 Required-property validation is defined in
 [RFC-0008](docs/architecture/RFC-0008-required-fields.md).
+All operational decisions are centralized by the framework-independent
+[Capability Resolver](docs/architecture/RFC-0009-capability-resolver.md).
 
 ## License
 

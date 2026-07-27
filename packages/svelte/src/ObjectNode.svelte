@@ -6,10 +6,10 @@
     formatObjectPath,
     formatObjectValue,
     isEditableContainer,
-    isEditableValue,
     missingRequiredFields,
     objectEntries,
     objectValueKind,
+    resolveCapabilities,
     validateField,
     type EditableValue,
     type FieldSchema,
@@ -31,11 +31,11 @@
     path,
     ancestors,
     editorId,
-    parentKind,
     siblingIndex,
     siblingCount,
     siblingKeys,
     root,
+    parentValue,
     fieldSchema,
     onupdate,
     onoperation
@@ -45,11 +45,11 @@
     path: ObjectPath;
     ancestors: readonly object[];
     editorId: string;
-    parentKind: 'array' | 'object';
     siblingIndex: number;
     siblingCount: number;
     siblingKeys: readonly string[];
     root: unknown;
+    parentValue: unknown;
     fieldSchema?: FieldSchema;
     onupdate: UpdateHandler;
     onoperation: OperationHandler;
@@ -85,7 +85,16 @@
       .filter(Boolean)
       .join('. ')
   );
-  const editable = $derived(Boolean(schemaType) || isEditableValue(value));
+  const capabilities = $derived(
+    resolveCapabilities({
+      root,
+      value,
+      parent: parentValue,
+      path,
+      schema: fieldSchema
+    })
+  );
+  const editable = $derived(capabilities.editValue);
   const nextAncestors = $derived(
     container ? [...ancestors, value as object] : ancestors
   );
@@ -195,7 +204,7 @@
       </button>
       <NodeActions
         {path}
-        {parentKind}
+        {capabilities}
         {siblingIndex}
         {siblingCount}
         {siblingKeys}
@@ -212,11 +221,11 @@
             path={[...path, entry.key]}
             ancestors={nextAncestors}
             {editorId}
-            parentKind={Array.isArray(value) ? 'array' : 'object'}
             siblingIndex={index}
             siblingCount={entries.length}
             siblingKeys={childKeys}
             {root}
+            parentValue={value}
             fieldSchema={childSchema(entry.key)}
             {onupdate}
             {onoperation}
@@ -226,7 +235,7 @@
             Empty {Array.isArray(value) ? 'array' : 'object'}
           </p>
         {/each}
-        {#if Array.isArray(value)}
+        {#if Array.isArray(value) && capabilities.insert}
           <div class="container-add">
             <button
               type="button"
@@ -234,7 +243,7 @@
               onclick={appendArrayItem}>+ Item</button
             >
           </div>
-        {:else}
+        {:else if !Array.isArray(value) && capabilities.insert}
           <AddProperty {path} existingKeys={childKeys} {onoperation} />
         {/if}
       </div>
@@ -321,7 +330,7 @@
       {/if}
       <NodeActions
         {path}
-        {parentKind}
+        {capabilities}
         {siblingIndex}
         {siblingCount}
         {siblingKeys}
