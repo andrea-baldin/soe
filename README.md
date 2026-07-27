@@ -101,6 +101,8 @@ Extensions share the immutable context defined in
 [RFC-0011](docs/architecture/RFC-0011-node-context.md).
 Typed metadata composition is defined by
 [Property Providers](docs/architecture/RFC-0012-property-providers.md).
+Minimal extension registration is defined by the
+[Plugin Host](docs/architecture/RFC-0013-plugin-host.md).
 
 ## License
 

@@ -77,8 +77,15 @@
 - Per-resolution isolation and frozen results
 - No speculative universal property catalog
 
+## Milestone 4.5 — Plugin host
+
+- Minimal typed plugin registration over existing providers
+- Capability resolution before property resolution
+- Immutable combined node resolution
+- No plugin lifecycle or public component registration
+
 ## Later milestones
 
-Plugins, concrete policy and property catalogs, persistent object models,
-custom editors, and alternate renderers remain candidates. Each requires its
-own RFC and a demonstrated use case before entering the core.
+Concrete policy and property catalogs, persistent object models, custom
+editors, and alternate renderers remain candidates. Each requires its own RFC
+and a demonstrated use case before entering the core.
