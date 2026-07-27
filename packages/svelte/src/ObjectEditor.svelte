@@ -3,12 +3,15 @@
    * ObjectEditor owns the bound root while nodes render paths recursively.
    */
   import {
+    applyStructuralOperation,
     objectEntries,
     replaceValueAtPath,
     type EditableValue,
-    type ObjectPath
+    type ObjectPath,
+    type StructuralOperation
   } from '@soe/core';
 
+  import AddProperty from './AddProperty.svelte';
   import ObjectNode from './ObjectNode.svelte';
 
   type ObjectRecord = Record<string, unknown>;
@@ -17,9 +20,14 @@
 
   const editorId = $props.id();
   const entries = $derived(objectEntries(value));
+  const keys = $derived(entries.map((entry) => String(entry.key)));
 
   function update(path: ObjectPath, nextValue: EditableValue): void {
     value = replaceValueAtPath(value, path, nextValue);
+  }
+
+  function operate(operation: StructuralOperation): void {
+    value = applyStructuralOperation(value, operation);
   }
 
   function entryLabel(key: string | number): string {
@@ -28,18 +36,24 @@
 </script>
 
 <div class="object-editor" data-soe-editor>
-  {#each entries as entry (entry.key)}
+  {#each entries as entry, index (entry.key)}
     <ObjectNode
       label={entryLabel(entry.key)}
       value={entry.value}
       path={[entry.key]}
       ancestors={[value]}
       {editorId}
+      parentKind="object"
+      siblingIndex={index}
+      siblingCount={entries.length}
+      siblingKeys={keys}
       onupdate={update}
+      onoperation={operate}
     />
   {:else}
     <p class="empty-state">Empty object</p>
   {/each}
+  <AddProperty path={[]} existingKeys={keys} onoperation={operate} />
 </div>
 
 <style>

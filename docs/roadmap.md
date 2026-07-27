@@ -23,8 +23,10 @@
 
 ## Milestone 2.2 — Structural editing
 
-- Insert, rename, and delete operations
-- Array operations
+- Immutable object property insertion, renaming, and deletion
+- Immutable array append, movement, and deletion
+- Inline key validation and explicit delete confirmation
+- Framework-independent structural operation tests
 
 ## Milestone 2.3 — History
 

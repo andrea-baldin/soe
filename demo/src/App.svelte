@@ -36,8 +36,8 @@
         Editing objects should feel like editing text.
       </h1>
       <p class="mt-6 max-w-2xl text-lg leading-7 text-slate-600">
-        Primitive values are editable. Other JavaScript values remain visible
-        and safe to inspect.
+        Edit primitive values, add or rename properties, and move array items.
+        Other JavaScript values remain visible and safe to inspect.
       </p>
     </header>
 
