@@ -56,8 +56,15 @@
 - Value, structural, and movement controls driven by resolved capability
 - No additional public component properties
 
+## Milestone 4.2 — Capability providers
+
+- Ordered partial capability contributions
+- Explicit later-provider precedence
+- Per-provider error and malformed-result isolation
+- Framework-independent composition without public UI registration
+
 ## Later milestones
 
-Plugins, capability providers, property providers, custom editors, and
+Plugins, concrete policy providers, property providers, custom editors, and
 alternate renderers remain candidates. Each requires its own RFC and a
 demonstrated use case before entering the core.

@@ -32,11 +32,14 @@ export type {
   SchemaValueType
 } from './object-schema.js';
 export {
+  createCapabilityResolver,
   defaultCapabilityResolver,
   resolveCapabilities
 } from './capability-resolver.js';
 export type {
   Capabilities,
+  CapabilityContribution,
   CapabilityContext,
+  CapabilityProvider,
   CapabilityResolver
 } from './capability-resolver.js';
