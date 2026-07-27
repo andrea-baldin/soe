@@ -21,9 +21,11 @@ providing clarity, structure, and guidance without getting in the way.
 
 ## Project status
 
-SOE is in its foundation phase. The repository already contains the first
-usable primitive object editor, its framework-independent value model, a demo,
-tests, and the project documents that guide future work.
+SOE currently provides primitive object editing for strings, finite numbers,
+booleans, and explicitly initialized null values. Unsupported JavaScript
+values remain safely inspectable. The repository also contains its
+framework-independent value model, a demo, interaction tests, and the project
+documents that guide future work.
 
 ## Development
 
@@ -56,6 +58,8 @@ users. Read the [SOE Manifesto](docs/manifesto.md) and
 [RFC-0001](docs/architecture/RFC-0001-foundation.md) for the full rationale.
 Styling boundaries are defined in
 [RFC-0002](docs/architecture/RFC-0002-styling.md).
+Primitive editing and the precedence of future validation criteria are defined
+in [RFC-0003](docs/architecture/RFC-0003-primitive-editing.md).
 
 ## License
 

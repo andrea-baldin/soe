@@ -27,11 +27,13 @@ describe('isEditableValue', () => {
     expect(isEditableValue('hello')).toBe(true);
     expect(isEditableValue(10)).toBe(true);
     expect(isEditableValue(false)).toBe(true);
+    expect(isEditableValue(null)).toBe(true);
   });
 
   it('rejects values that are inspection-only', () => {
-    expect(isEditableValue(null)).toBe(false);
     expect(isEditableValue({})).toBe(false);
+    expect(isEditableValue(Number.POSITIVE_INFINITY)).toBe(false);
+    expect(isEditableValue(Number.NaN)).toBe(false);
     expect(isEditableValue(Symbol('value'))).toBe(false);
   });
 });

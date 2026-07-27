@@ -1,4 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["src/**/*.ts", "src/**/*.svelte"]
+  "compilerOptions": {
+    "types": ["@testing-library/jest-dom", "vitest/globals"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.svelte",
+    "tests/**/*.ts",
+    "tests/**/*.svelte"
+  ]
 }
