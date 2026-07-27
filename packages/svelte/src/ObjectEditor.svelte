@@ -4,8 +4,10 @@
    */
   import {
     applyStructuralOperation,
+    formatObjectPath,
     objectEntries,
     replaceValueAtPath,
+    ValueHistory,
     type EditableValue,
     type ObjectPath,
     type StructuralOperation
@@ -19,41 +21,131 @@
   let { value = $bindable() }: { value: ObjectRecord } = $props();
 
   const editorId = $props.id();
+  const history = new ValueHistory(value);
+  let synchronizedValue = value;
+  let historyRevision = $state(0);
   const entries = $derived(objectEntries(value));
   const keys = $derived(entries.map((entry) => String(entry.key)));
+  const canUndo = $derived.by(() => {
+    void historyRevision;
+    return history.canUndo;
+  });
+  const canRedo = $derived.by(() => {
+    void historyRevision;
+    return history.canRedo;
+  });
 
   function update(path: ObjectPath, nextValue: EditableValue): void {
-    value = replaceValueAtPath(value, path, nextValue);
+    commit(replaceValueAtPath(value, path, nextValue), formatObjectPath(path));
   }
 
   function operate(operation: StructuralOperation): void {
-    value = applyStructuralOperation(value, operation);
+    commit(applyStructuralOperation(value, operation));
+  }
+
+  function commit(nextValue: ObjectRecord, group?: string): void {
+    if (Object.is(nextValue, value)) return;
+
+    history.record(nextValue, group);
+    synchronizedValue = nextValue;
+    value = nextValue;
+    historyRevision += 1;
+  }
+
+  function undo(): void {
+    if (!history.canUndo) return;
+
+    synchronizedValue = history.undo();
+    value = synchronizedValue;
+    historyRevision += 1;
+  }
+
+  function redo(): void {
+    if (!history.canRedo) return;
+
+    synchronizedValue = history.redo();
+    value = synchronizedValue;
+    historyRevision += 1;
+  }
+
+  function handleKeydown(event: KeyboardEvent): void {
+    const modifier = event.ctrlKey || event.metaKey;
+    if (!modifier || event.altKey) return;
+
+    const key = event.key.toLowerCase();
+    if (key === 'y' && !event.shiftKey) {
+      event.preventDefault();
+      redo();
+      return;
+    }
+    if (key !== 'z') return;
+
+    event.preventDefault();
+    if (event.shiftKey) {
+      redo();
+    } else {
+      undo();
+    }
   }
 
   function entryLabel(key: string | number): string {
     return typeof key === 'number' ? `[${key}]` : key;
   }
+
+  $effect(() => {
+    if (value !== synchronizedValue) {
+      history.reset(value);
+      synchronizedValue = value;
+      historyRevision += 1;
+    }
+  });
 </script>
 
-<div class="object-editor" data-soe-editor>
-  {#each entries as entry, index (entry.key)}
-    <ObjectNode
-      label={entryLabel(entry.key)}
-      value={entry.value}
-      path={[entry.key]}
-      ancestors={[value]}
-      {editorId}
-      parentKind="object"
-      siblingIndex={index}
-      siblingCount={entries.length}
-      siblingKeys={keys}
-      onupdate={update}
-      onoperation={operate}
-    />
-  {:else}
-    <p class="empty-state">Empty object</p>
-  {/each}
-  <AddProperty path={[]} existingKeys={keys} onoperation={operate} />
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions (shortcuts are delegated from focused descendant controls) -->
+<div
+  class="object-editor"
+  data-soe-editor
+  role="group"
+  aria-label="Object editor"
+  onkeydown={handleKeydown}
+>
+  <div class="history-controls" data-soe-history>
+    <button
+      type="button"
+      onclick={undo}
+      disabled={!canUndo}
+      aria-label="Undo"
+      aria-keyshortcuts="Control+Z Meta+Z">Undo</button
+    >
+    <button
+      type="button"
+      onclick={redo}
+      disabled={!canRedo}
+      aria-label="Redo"
+      aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z Control+Y Meta+Y"
+      >Redo</button
+    >
+  </div>
+  <div class="object-content">
+    {#each entries as entry, index (entry.key)}
+      <ObjectNode
+        label={entryLabel(entry.key)}
+        value={entry.value}
+        path={[entry.key]}
+        ancestors={[value]}
+        {editorId}
+        parentKind="object"
+        siblingIndex={index}
+        siblingCount={entries.length}
+        siblingKeys={keys}
+        onupdate={update}
+        onoperation={operate}
+      />
+    {:else}
+      <p class="empty-state">Empty object</p>
+    {/each}
+    <AddProperty path={[]} existingKeys={keys} onoperation={operate} />
+  </div>
 </div>
 
 <style>
@@ -80,5 +172,38 @@
     padding: 1rem;
     color: var(--soe-muted, #667085);
     text-align: center;
+  }
+
+  .history-controls {
+    display: flex;
+    gap: 0.25rem;
+    justify-content: flex-end;
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid var(--soe-border, #d9dee7);
+  }
+
+  .history-controls button {
+    padding: 0.25rem 0.45rem;
+    color: var(--soe-muted, #667085);
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+  }
+
+  .history-controls button:hover:not(:disabled) {
+    border-color: var(--soe-border, #d9dee7);
+  }
+
+  .history-controls button:focus-visible {
+    outline: 2px solid var(--soe-focus-ring, #84adff);
+    border-color: var(--soe-focus, #155eef);
+  }
+
+  .history-controls button:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
   }
 </style>
