@@ -10,7 +10,6 @@
     objectEntries,
     replaceValueAtPath,
     ValueHistory,
-    type EditableValue,
     type ObjectSchema,
     type ObjectPath,
     type StructuralOperation
@@ -67,7 +66,7 @@
     return history.canRedo;
   });
 
-  function update(path: ObjectPath, nextValue: EditableValue): void {
+  function update(path: ObjectPath, nextValue: unknown): void {
     commit(replaceValueAtPath(value, path, nextValue), formatObjectPath(path));
   }
 

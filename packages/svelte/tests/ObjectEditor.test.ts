@@ -156,6 +156,71 @@ describe('ObjectEditor', () => {
     expect(screen.getByRole('textbox', { name: 'name' })).toHaveValue('Ada');
   });
 
+  it('pastes matching JSON containers and records history', async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        readText: vi.fn().mockResolvedValue('{"name":"Grace","active":true}'),
+        writeText: vi.fn()
+      }
+    });
+
+    render(ObjectEditorHarness, {
+      initial: { profile: { name: 'Ada' } }
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Paste profile' }));
+
+    expect(boundValue()).toEqual({
+      profile: { active: true, name: 'Grace' }
+    });
+    expect(screen.getByText('Pasted')).toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(boundValue()).toEqual({ profile: { name: 'Ada' } });
+  });
+
+  it('rejects mismatched clipboard containers', async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        readText: vi.fn().mockResolvedValue('["not","an","object"]'),
+        writeText: vi.fn()
+      }
+    });
+
+    render(ObjectEditorHarness, {
+      initial: { profile: { name: 'Ada' } }
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Paste profile' }));
+
+    expect(boundValue()).toEqual({ profile: { name: 'Ada' } });
+    expect(screen.getByText('Paste requires a JSON object')).toBeVisible();
+  });
+
+  it('hides paste when a plugin removes the capability', () => {
+    const plugins: ObjectEditorPlugin[] = [
+      {
+        capabilities: {
+          provide: (context) =>
+            context.path.join('.') === 'profile' ? { paste: false } : undefined
+        }
+      }
+    ];
+
+    render(ObjectEditor, {
+      value: { profile: { name: 'Ada' } },
+      plugins
+    });
+
+    expect(
+      screen.queryByRole('button', { name: 'Paste profile' })
+    ).not.toBeInTheDocument();
+  });
+
   it('applies later renderer property contributions last', () => {
     const plugins: ObjectEditorPlugin[] = [
       {

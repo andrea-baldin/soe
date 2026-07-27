@@ -9,7 +9,11 @@ export {
   serializeObjectValue
 } from './object-value.js';
 export type { EditableValue, ObjectValueKind } from './object-value.js';
-export { isEditableContainer, objectEntries } from './object-container.js';
+export {
+  isEditableContainer,
+  objectEntries,
+  parseObjectContainer
+} from './object-container.js';
 export type { EditableContainer, ObjectEntry } from './object-container.js';
 export {
   formatObjectPath,

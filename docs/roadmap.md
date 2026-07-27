@@ -105,6 +105,13 @@
 - Safe readable fallback for special and circular values
 - Clipboard failure isolation with accessible status
 
+## Milestone 5.2 — Safe paste
+
+- Capability-driven paste for rendered containers
+- Valid JSON with matching object or array kind
+- Immutable replacement integrated with undo and redo
+- Invalid input and clipboard failure isolation
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom

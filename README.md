@@ -109,6 +109,8 @@ The minimal presentation catalog is defined by
 [Renderer Properties](docs/architecture/RFC-0015-renderer-properties.md).
 Safe clipboard output is defined by
 [Safe Value Copy](docs/architecture/RFC-0016-safe-copy.md).
+Explicit container replacement is defined by
+[Safe Container Paste](docs/architecture/RFC-0017-safe-paste.md).
 
 ## License
 
