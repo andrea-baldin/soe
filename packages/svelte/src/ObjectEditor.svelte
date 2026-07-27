@@ -8,7 +8,7 @@
     missingRequiredFields,
     objectEntries,
     replaceValueAtPath,
-    resolveCapabilities,
+    resolveNodeContext,
     ValueHistory,
     type EditableValue,
     type ObjectSchema,
@@ -39,12 +39,12 @@
     missingRequiredFields(value, schema?.fields)
   );
   const rootCapabilities = $derived(
-    resolveCapabilities({
+    resolveNodeContext({
       root: value,
       value,
       parent: undefined,
       path: []
-    })
+    }).capabilities
   );
   const canUndo = $derived.by(() => {
     void historyRevision;

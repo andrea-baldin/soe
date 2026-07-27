@@ -9,7 +9,7 @@
     missingRequiredFields,
     objectEntries,
     objectValueKind,
-    resolveCapabilities,
+    resolveNodeContext,
     validateField,
     type EditableValue,
     type FieldSchema,
@@ -85,8 +85,8 @@
       .filter(Boolean)
       .join('. ')
   );
-  const capabilities = $derived(
-    resolveCapabilities({
+  const nodeContext = $derived(
+    resolveNodeContext({
       root,
       value,
       parent: parentValue,
@@ -94,6 +94,7 @@
       schema: fieldSchema
     })
   );
+  const capabilities = $derived(nodeContext.capabilities);
   const editable = $derived(capabilities.editValue);
   const nextAncestors = $derived(
     container ? [...ancestors, value as object] : ancestors

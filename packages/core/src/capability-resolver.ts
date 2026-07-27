@@ -3,8 +3,7 @@
  */
 
 import { isEditableContainer } from './object-container.js';
-import type { ObjectPath } from './object-path.js';
-import type { FieldSchema } from './object-schema.js';
+import type { NodeContext } from './node-context.js';
 import { isEditableValue } from './object-value.js';
 
 export interface Capabilities {
@@ -18,13 +17,7 @@ export interface Capabilities {
   readonly inspect: boolean;
 }
 
-export interface CapabilityContext {
-  readonly root: unknown;
-  readonly value: unknown;
-  readonly parent: unknown;
-  readonly path: ObjectPath;
-  readonly schema?: FieldSchema;
-}
+export type CapabilityContext<T = unknown> = NodeContext<T>;
 
 export interface CapabilityResolver {
   resolve(context: CapabilityContext): Capabilities;
