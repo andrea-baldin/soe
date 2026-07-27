@@ -5,7 +5,9 @@
   import {
     formatObjectPath,
     formatObjectValue,
+    inspectionEntries,
     isEditableContainer,
+    isInspectableContainer,
     missingRequiredFields,
     objectEntries,
     objectValueKind,
@@ -39,6 +41,7 @@
     parentValue,
     fieldSchema,
     pluginHost,
+    inspectOnly = false,
     onupdate,
     onoperation
   }: {
@@ -54,16 +57,25 @@
     parentValue: unknown;
     fieldSchema?: FieldSchema;
     pluginHost: PluginHost<ObjectEditorNodeProperties>;
+    inspectOnly?: boolean;
     onupdate: UpdateHandler;
     onoperation: OperationHandler;
   } = $props();
 
   let expanded = $state(true);
 
-  const container = $derived(isEditableContainer(value));
+  const editableContainer = $derived(isEditableContainer(value));
+  const inspectionContainer = $derived(
+    !editableContainer && isInspectableContainer(value)
+  );
+  const container = $derived(editableContainer || inspectionContainer);
   const circular = $derived(container && ancestors.includes(value as object));
   const entries = $derived.by(() =>
-    isEditableContainer(value) && !circular ? objectEntries(value) : []
+    !circular
+      ? editableContainer
+        ? objectEntries(value as Record<string, unknown> | readonly unknown[])
+        : inspectionEntries(value)
+      : []
   );
   const childKeys = $derived(entries.map((entry) => String(entry.key)));
   const nodePath = $derived(formatObjectPath(path));
@@ -102,7 +114,19 @@
   const properties = $derived(nodeResolution.properties);
   const displayLabel = $derived(properties.label ?? label);
   const description = $derived(properties.description);
-  const capabilities = $derived(nodeContext.capabilities);
+  const capabilities = $derived(
+    inspectOnly || inspectionContainer
+      ? {
+          ...nodeContext.capabilities,
+          delete: false,
+          editValue: false,
+          insert: false,
+          move: false,
+          paste: false,
+          renameKey: false
+        }
+      : nodeContext.capabilities
+  );
   const editable = $derived(capabilities.editValue);
   const nextAncestors = $derived(
     container ? [...ancestors, value as object] : ancestors
@@ -170,7 +194,8 @@
 
   function containerSummary(): string {
     if (Array.isArray(value)) return `Array(${value.length})`;
-    return `Object(${entries.length})`;
+    if (editableContainer) return `Object(${entries.length})`;
+    return formatObjectValue(value);
   }
 
   function entryLabel(key: string | number): string {
@@ -244,6 +269,7 @@
             parentValue={value}
             fieldSchema={childSchema(entry.key)}
             {pluginHost}
+            inspectOnly={inspectOnly || !editableContainer}
             {onupdate}
             {onoperation}
           />
