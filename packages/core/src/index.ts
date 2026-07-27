@@ -50,3 +50,10 @@ export type {
   PropertyProvider,
   PropertyResolver
 } from './property-provider.js';
+export { createPluginHost } from './plugin-host.js';
+export type {
+  ObjectPlugin,
+  PluginHost,
+  PluginHostOptions,
+  PluginResolution
+} from './plugin-host.js';
