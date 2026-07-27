@@ -384,4 +384,68 @@ describe('ObjectEditor', () => {
       'null'
     );
   });
+
+  it('undoes and redoes primitive and structural revisions', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditorHarness, {
+      initial: {
+        name: 'Ada',
+        skills: ['math']
+      }
+    });
+
+    const undo = screen.getByRole('button', { name: 'Undo' });
+    const redo = screen.getByRole('button', { name: 'Redo' });
+    expect(undo).toBeDisabled();
+    expect(redo).toBeDisabled();
+
+    const name = screen.getByRole('textbox', { name: 'name' });
+    await user.clear(name);
+    await user.type(name, 'Grace');
+    await user.click(
+      screen.getByRole('button', { name: 'Append item to skills' })
+    );
+
+    expect(boundValue()).toEqual({ name: 'Grace', skills: ['math', null] });
+
+    await user.click(undo);
+    expect(boundValue()).toEqual({ name: 'Grace', skills: ['math'] });
+
+    await user.click(undo);
+    expect(boundValue()).toEqual({ name: 'Ada', skills: ['math'] });
+
+    await user.click(redo);
+    await user.click(redo);
+    expect(boundValue()).toEqual({ name: 'Grace', skills: ['math', null] });
+  });
+
+  it('supports keyboard shortcuts and clears redo after a new edit', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditorHarness, {
+      initial: { name: 'Ada' }
+    });
+
+    const name = screen.getByRole('textbox', { name: 'name' });
+    await user.clear(name);
+    await user.type(name, 'Grace');
+
+    await fireEvent.keyDown(name, { ctrlKey: true, key: 'z' });
+    expect(boundValue()).toEqual({ name: 'Ada' });
+
+    await fireEvent.keyDown(name, {
+      ctrlKey: true,
+      key: 'z',
+      shiftKey: true
+    });
+    expect(boundValue()).toEqual({ name: 'Grace' });
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    await user.clear(name);
+    await user.type(name, 'Marie');
+
+    expect(screen.getByRole('button', { name: 'Redo' })).toBeDisabled();
+    expect(boundValue()).toEqual({ name: 'Marie' });
+  });
 });

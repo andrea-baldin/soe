@@ -30,8 +30,10 @@
 
 ## Milestone 2.3 — History
 
-- Undoable operation model
-- Undo and redo
+- Framework-independent bounded value history
+- Undo and redo for primitive and structural changes
+- Coalesced field input revisions
+- Accessible controls and keyboard shortcuts
 
 ## Later milestones
 

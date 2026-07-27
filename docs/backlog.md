@@ -3,13 +3,11 @@
 The backlog records ideas without committing them to the public API.
 
 - Object paths and stable node identities
-- Recursive object and array editing
 - Schema-driven metadata and validation
 - Capability resolver
 - Property providers
 - Plugin node context
-- Undo and redo history
-- Copy, paste, and structural movement
+- Copy and paste
 - Search and filtering
 - Alternate renderers
 - Custom value editors

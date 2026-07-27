@@ -24,9 +24,10 @@ providing clarity, structure, and guidance without getting in the way.
 SOE currently provides recursive and structural editing for plain objects and
 arrays, including property insertion and renaming, item movement, and deletion.
 Strings, finite numbers, booleans, and explicitly initialized null values are
-editable. Unsupported JavaScript values and circular references remain safely
-inspectable. The repository also contains its framework-independent operations,
-a demo, interaction tests, and the project documents that guide future work.
+editable, with undo and redo for both value and structural changes. Unsupported
+JavaScript values and circular references remain safely inspectable. The
+repository also contains its framework-independent operations, a demo,
+interaction tests, and the project documents that guide future work.
 
 ## Development
 
@@ -65,6 +66,8 @@ Recursive traversal and immutable paths are defined in
 [RFC-0004](docs/architecture/RFC-0004-recursive-editing.md).
 Structural operations and their UI boundaries are defined in
 [RFC-0005](docs/architecture/RFC-0005-structural-editing.md).
+Bounded value history, revision grouping, and keyboard shortcuts are defined in
+[RFC-0006](docs/architecture/RFC-0006-history.md).
 
 ## License
 
