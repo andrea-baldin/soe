@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   fieldSchemaAtPath,
+  missingRequiredFields,
   validateField,
   type ObjectSchema
 } from './object-schema.js';
@@ -74,5 +75,27 @@ describe('object schema', () => {
         { path: ['field'], root: {} }
       )
     ).toBe('Validation could not be completed');
+  });
+
+  it('reports missing required own properties without reading values', () => {
+    let getterCalls = 0;
+    const value = Object.create({ inherited: true }) as Record<string, unknown>;
+    Object.defineProperty(value, 'present', {
+      enumerable: true,
+      get() {
+        getterCalls += 1;
+        return 'value';
+      }
+    });
+
+    expect(
+      missingRequiredFields(value, {
+        inherited: { required: true },
+        missing: { required: true },
+        optional: {},
+        present: { required: true }
+      })
+    ).toEqual(['inherited', 'missing']);
+    expect(getterCalls).toBe(0);
   });
 });

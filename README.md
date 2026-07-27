@@ -27,9 +27,9 @@ Strings, finite numbers, booleans, and explicitly initialized null values are
 editable, with undo and redo for both value and structural changes. Unsupported
 JavaScript values and circular references remain safely inspectable. The
 optional schema can override runtime type inference and provide synchronous
-field validation. The repository also contains its framework-independent
-operations, a demo, interaction tests, and the project documents that guide
-future work.
+field validation, including missing required properties. The repository also
+contains its framework-independent operations, a demo, interaction tests, and
+the project documents that guide future work.
 
 ```svelte
 <script lang="ts">
@@ -38,6 +38,7 @@ future work.
   const schema: ObjectSchema = {
     fields: {
       age: {
+        required: true,
         type: 'number',
         validate: (value) =>
           Number(value) >= 0 ? undefined : 'Age cannot be negative'
@@ -90,6 +91,8 @@ Bounded value history, revision grouping, and keyboard shortcuts are defined in
 [RFC-0006](docs/architecture/RFC-0006-history.md).
 Schema precedence and validation boundaries are defined in
 [RFC-0007](docs/architecture/RFC-0007-schema-validation.md).
+Required-property validation is defined in
+[RFC-0008](docs/architecture/RFC-0008-required-fields.md).
 
 ## License
 

@@ -42,8 +42,15 @@
 - Synchronous validators with root and path context
 - Accessible inline validation without blocking editing
 
+## Milestone 3.2 — Required fields
+
+- Required property knowledge in field schemas
+- Root and nested missing-property validation
+- Reactive updates across structural editing and history
+- Separation between validation and operation permissions
+
 ## Later milestones
 
-Plugins, capabilities, property providers, required fields, custom editors, and
-alternate renderers remain candidates. Each requires its own RFC and a
-demonstrated use case before entering the core.
+Plugins, capabilities, property providers, custom editors, and alternate
+renderers remain candidates. Each requires its own RFC and a demonstrated use
+case before entering the core.
