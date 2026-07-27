@@ -19,6 +19,7 @@
 
   import AddProperty from './AddProperty.svelte';
   import NodeActions from './NodeActions.svelte';
+  import type { ObjectEditorNodeProperties } from './object-editor-plugin.js';
   import ObjectNode from './ObjectNode.svelte';
 
   type NullReplacementKind = 'boolean' | 'null' | 'number' | 'string';
@@ -52,7 +53,7 @@
     root: unknown;
     parentValue: unknown;
     fieldSchema?: FieldSchema;
-    pluginHost: PluginHost<Record<string, never>>;
+    pluginHost: PluginHost<ObjectEditorNodeProperties>;
     onupdate: UpdateHandler;
     onoperation: OperationHandler;
   } = $props();
@@ -68,6 +69,7 @@
   const nodePath = $derived(formatObjectPath(path));
   const fieldId = $derived(`${editorId}-field-${encodeURIComponent(nodePath)}`);
   const validationId = $derived(`${fieldId}-validation`);
+  const descriptionId = $derived(`${fieldId}-description`);
   const schemaType = $derived(fieldSchema?.type);
   const validationMessage = $derived(
     validateField(value, fieldSchema, { path, root })
@@ -87,15 +89,19 @@
       .filter(Boolean)
       .join('. ')
   );
-  const nodeContext = $derived(
+  const nodeResolution = $derived(
     pluginHost.resolve({
       root,
       value,
       parent: parentValue,
       path,
       schema: fieldSchema
-    }).context
+    })
   );
+  const nodeContext = $derived(nodeResolution.context);
+  const properties = $derived(nodeResolution.properties);
+  const displayLabel = $derived(properties.label ?? label);
+  const description = $derived(properties.description);
   const capabilities = $derived(nodeContext.capabilities);
   const editable = $derived(capabilities.editValue);
   const nextAncestors = $derived(
@@ -192,14 +198,19 @@
 >
   {#if container && !circular}
     <div class="object-field container-field">
-      <span class="node-key">{label}</span>
+      <span class="node-key">{displayLabel}</span>
       <button
         type="button"
         class="toggle"
         aria-expanded={expanded}
         aria-controls={`${fieldId}-children`}
         aria-label={`${expanded ? 'Collapse' : 'Expand'} ${nodePath}`}
-        aria-describedby={nodeValidationMessage ? validationId : undefined}
+        aria-describedby={[
+          description ? descriptionId : undefined,
+          nodeValidationMessage ? validationId : undefined
+        ]
+          .filter(Boolean)
+          .join(' ') || undefined}
         onclick={() => (expanded = !expanded)}
       >
         <span aria-hidden="true" class:expanded>›</span>
@@ -257,9 +268,12 @@
         {nodeValidationMessage}
       </p>
     {/if}
+    {#if description}
+      <p id={descriptionId} class="node-description">{description}</p>
+    {/if}
   {:else}
     <div class="object-field">
-      <label for={fieldId}>{label}</label>
+      <label for={fieldId}>{displayLabel}</label>
 
       {#if circular}
         <output id={fieldId} class="inspection-value" aria-label={nodePath}
@@ -271,7 +285,12 @@
             id={fieldId}
             aria-label={nodePath}
             aria-invalid={Boolean(validationMessage)}
-            aria-describedby={validationMessage ? validationId : undefined}
+            aria-describedby={[
+              description ? descriptionId : undefined,
+              validationMessage ? validationId : undefined
+            ]
+              .filter(Boolean)
+              .join(' ') || undefined}
             value="null"
             onchange={replaceNull}
           >
@@ -287,7 +306,12 @@
             type="checkbox"
             checked={value === true}
             aria-invalid={Boolean(validationMessage)}
-            aria-describedby={validationMessage ? validationId : undefined}
+            aria-describedby={[
+              description ? descriptionId : undefined,
+              validationMessage ? validationId : undefined
+            ]
+              .filter(Boolean)
+              .join(' ') || undefined}
             onchange={updateBoolean}
           />
         {:else if schemaType === 'number' || (!schemaType && typeof value === 'number')}
@@ -300,7 +324,12 @@
               ? value
               : ''}
             aria-invalid={Boolean(validationMessage)}
-            aria-describedby={validationMessage ? validationId : undefined}
+            aria-describedby={[
+              description ? descriptionId : undefined,
+              validationMessage ? validationId : undefined
+            ]
+              .filter(Boolean)
+              .join(' ') || undefined}
             oninput={updateNumber}
             onblur={(event) =>
               restoreNumber(
@@ -317,7 +346,12 @@
             type="text"
             value={stringEditorValue()}
             aria-invalid={Boolean(validationMessage)}
-            aria-describedby={validationMessage ? validationId : undefined}
+            aria-describedby={[
+              description ? descriptionId : undefined,
+              validationMessage ? validationId : undefined
+            ]
+              .filter(Boolean)
+              .join(' ') || undefined}
             oninput={updateString}
           />
         {/if}
@@ -341,6 +375,9 @@
         {onoperation}
       />
     </div>
+    {#if description}
+      <p id={descriptionId} class="node-description">{description}</p>
+    {/if}
     {#if validationMessage}
       <p id={validationId} class="validation-error" role="alert">
         {validationMessage}
@@ -495,6 +532,14 @@
     padding: 0.25rem 0.85rem 0.45rem;
     color: var(--soe-error, #b42318);
     font-size: 0.8rem;
+    border-bottom: 1px solid var(--soe-border, #d9dee7);
+  }
+
+  .node-description {
+    margin: 0;
+    padding: 0.35rem 0.85rem;
+    color: var(--soe-muted, #667085);
+    font-size: 0.75rem;
     border-bottom: 1px solid var(--soe-border, #d9dee7);
   }
 

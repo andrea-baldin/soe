@@ -74,6 +74,70 @@ describe('ObjectEditor', () => {
     });
   });
 
+  it('composes renderer properties while preserving canonical paths', () => {
+    const plugins: ObjectEditorPlugin[] = [
+      {
+        properties: {
+          provide(context) {
+            return context.path.join('.') === 'profile.name'
+              ? {
+                  description: 'The public name shown on the profile.',
+                  label: 'Display name'
+                }
+              : undefined;
+          }
+        }
+      }
+    ];
+
+    render(ObjectEditor, {
+      value: {
+        profile: {
+          name: 'Ada'
+        }
+      },
+      plugins
+    });
+
+    const input = screen.getByRole('textbox', { name: 'profile.name' });
+    expect(screen.getByText('Display name')).toBeVisible();
+    expect(input).toHaveAccessibleDescription(
+      'The public name shown on the profile.'
+    );
+    expect(input.closest('[data-soe-node]')).toHaveAttribute(
+      'data-soe-path',
+      'profile.name'
+    );
+  });
+
+  it('applies later renderer property contributions last', () => {
+    const plugins: ObjectEditorPlugin[] = [
+      {
+        properties: {
+          provide: () => ({ label: 'First label' })
+        }
+      },
+      {
+        properties: {
+          provide: (_context, current) => ({
+            description: `Resolved from ${current.label}`,
+            label: 'Final label'
+          })
+        }
+      }
+    ];
+
+    render(ObjectEditor, {
+      value: { name: 'Ada' },
+      plugins
+    });
+
+    expect(screen.getByText('Final label')).toBeVisible();
+    expect(
+      screen.getByRole('textbox', { name: 'name' })
+    ).toHaveAccessibleDescription('Resolved from First label');
+  });
+
   it('updates string, number, and boolean values through the binding', async () => {
     const user = userEvent.setup();
 

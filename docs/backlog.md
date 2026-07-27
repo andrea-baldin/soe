@@ -6,7 +6,7 @@ The backlog records ideas without committing them to the public API.
 - Schema-driven structural constraints
 - Permission and schema capability providers
 - Concrete property catalogs and providers
-- Renderer property catalog for ObjectEditor plugins
+- Additional renderer properties backed by concrete use cases
 - Copy and paste
 - Search and filtering
 - Alternate renderers
