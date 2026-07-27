@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import ObjectEditor from '../src/ObjectEditor.svelte';
 import type { ObjectEditorPlugin } from '../src/object-editor-plugin.js';
 import ObjectEditorHarness from './ObjectEditorHarness.svelte';
+import UppercaseEditor from './UppercaseEditor.svelte';
 
 afterEach(cleanup);
 
@@ -247,6 +248,57 @@ describe('ObjectEditor', () => {
     expect(
       screen.getByRole('textbox', { name: 'name' })
     ).toHaveAccessibleDescription('Resolved from First label');
+  });
+
+  it('renders a plugin-selected custom editor and records its commits', async () => {
+    const user = userEvent.setup();
+    const plugins: ObjectEditorPlugin[] = [
+      {
+        properties: {
+          provide: (context) =>
+            context.path.join('.') === 'name'
+              ? { editor: UppercaseEditor }
+              : undefined
+        }
+      }
+    ];
+
+    render(ObjectEditorHarness, {
+      initial: { name: 'Ada' },
+      plugins
+    });
+
+    expect(
+      screen.queryByRole('textbox', { name: 'name' })
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Uppercase name' }));
+    expect(boundValue()).toEqual({ name: 'ADA' });
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(boundValue()).toEqual({ name: 'Ada' });
+  });
+
+  it('ignores custom editors when editing is not permitted', () => {
+    const plugins: ObjectEditorPlugin[] = [
+      {
+        capabilities: {
+          provide: () => ({ editValue: false })
+        },
+        properties: {
+          provide: () => ({ editor: UppercaseEditor })
+        }
+      }
+    ];
+
+    render(ObjectEditor, {
+      value: { name: 'Ada' },
+      plugins
+    });
+
+    expect(
+      screen.queryByRole('button', { name: 'Uppercase name' })
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('Ada')).toBeVisible();
   });
 
   it('updates string, number, and boolean values through the binding', async () => {

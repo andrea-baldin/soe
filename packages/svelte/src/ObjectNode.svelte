@@ -112,6 +112,7 @@
   );
   const nodeContext = $derived(nodeResolution.context);
   const properties = $derived(nodeResolution.properties);
+  const CustomEditor = $derived(properties.editor);
   const displayLabel = $derived(properties.label ?? label);
   const description = $derived(properties.description);
   const capabilities = $derived(
@@ -308,7 +309,23 @@
           >Circular reference</output
         >
       {:else if editable}
-        {#if !schemaType && value === null}
+        {#if CustomEditor}
+          <div
+            id={fieldId}
+            class="custom-editor"
+            aria-describedby={[
+              description ? descriptionId : undefined,
+              validationMessage ? validationId : undefined
+            ]
+              .filter(Boolean)
+              .join(' ') || undefined}
+          >
+            <CustomEditor
+              context={nodeContext}
+              commit={(replacement) => onupdate(path, replacement)}
+            />
+          </div>
+        {:else if !schemaType && value === null}
           <select
             id={fieldId}
             aria-label={nodePath}
@@ -454,6 +471,11 @@
     background: transparent;
     border: 1px solid transparent;
     border-radius: 0.25rem;
+  }
+
+  .custom-editor {
+    min-width: 0;
+    margin: 0.35rem 0.5rem;
   }
 
   input[type='text']:focus,
