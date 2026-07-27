@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveCapabilities } from './capability-resolver.js';
+import {
+  createCapabilityResolver,
+  resolveCapabilities
+} from './capability-resolver.js';
 
 describe('resolveCapabilities', () => {
   it('derives value and object operations from node context', () => {
@@ -92,5 +95,85 @@ describe('resolveCapabilities', () => {
 
     expect(capabilities.editValue).toBe(false);
     expect(capabilities.inspect).toBe(true);
+  });
+
+  it('applies provider contributions in registration order', () => {
+    const context = {
+      root: { name: 'Ada' },
+      value: 'Ada',
+      parent: { name: 'Ada' },
+      path: ['name'] as const
+    };
+    const resolver = createCapabilityResolver([
+      {
+        provide(receivedContext, current) {
+          expect(receivedContext).toBe(context);
+          expect(current.editValue).toBe(true);
+          expect(Object.isFrozen(current)).toBe(true);
+          return { delete: false, editValue: false };
+        }
+      },
+      {
+        provide(_context, current) {
+          expect(current.editValue).toBe(false);
+          return { editValue: true };
+        }
+      }
+    ]);
+
+    expect(resolveCapabilities(context, resolver)).toMatchObject({
+      delete: false,
+      editValue: true,
+      renameKey: true
+    });
+  });
+
+  it('isolates provider failures and ignores malformed contributions', () => {
+    const resolver = createCapabilityResolver([
+      {
+        provide() {
+          throw new Error('Failure');
+        }
+      },
+      {
+        provide: () => ({ delete: 'invalid', move: true }) as never
+      },
+      {
+        provide: () => ({ editValue: false })
+      }
+    ]);
+    const capabilities = resolveCapabilities(
+      {
+        root: { name: 'Ada' },
+        value: 'Ada',
+        parent: { name: 'Ada' },
+        path: ['name']
+      },
+      resolver
+    );
+
+    expect(capabilities).toMatchObject({
+      delete: true,
+      editValue: false,
+      move: true
+    });
+  });
+
+  it('copies the provider registration list', () => {
+    const providers = [{ provide: () => ({ editValue: false }) }];
+    const resolver = createCapabilityResolver(providers);
+    providers.length = 0;
+
+    expect(
+      resolveCapabilities(
+        {
+          root: { name: 'Ada' },
+          value: 'Ada',
+          parent: { name: 'Ada' },
+          path: ['name']
+        },
+        resolver
+      ).editValue
+    ).toBe(false);
   });
 });

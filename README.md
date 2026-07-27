@@ -95,6 +95,8 @@ Required-property validation is defined in
 [RFC-0008](docs/architecture/RFC-0008-required-fields.md).
 All operational decisions are centralized by the framework-independent
 [Capability Resolver](docs/architecture/RFC-0009-capability-resolver.md).
+Ordered policy composition is defined by
+[Capability Providers](docs/architecture/RFC-0010-capability-providers.md).
 
 ## License
 

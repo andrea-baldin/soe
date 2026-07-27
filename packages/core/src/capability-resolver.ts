@@ -30,6 +30,15 @@ export interface CapabilityResolver {
   resolve(context: CapabilityContext): Capabilities;
 }
 
+export type CapabilityContribution = Partial<Capabilities>;
+
+export interface CapabilityProvider {
+  provide(
+    context: CapabilityContext,
+    current: Readonly<Capabilities>
+  ): CapabilityContribution | undefined;
+}
+
 export const defaultCapabilityResolver: CapabilityResolver = {
   resolve(context) {
     const segment = context.path.at(-1);
@@ -72,19 +81,62 @@ export function resolveCapabilities(
   }
 }
 
+export function createCapabilityResolver(
+  providers: readonly CapabilityProvider[],
+  baseResolver: CapabilityResolver = defaultCapabilityResolver
+): CapabilityResolver {
+  const registeredProviders = [...providers];
+
+  return {
+    resolve(context) {
+      let current = resolveCapabilities(context, baseResolver);
+
+      for (const provider of registeredProviders) {
+        try {
+          const contribution = provider.provide(
+            context,
+            Object.freeze({ ...current })
+          );
+          current = applyContribution(current, contribution);
+        } catch {
+          continue;
+        }
+      }
+
+      return current;
+    }
+  };
+}
+
+const capabilityNames = [
+  'editValue',
+  'renameKey',
+  'delete',
+  'insert',
+  'move',
+  'copy',
+  'paste',
+  'inspect'
+] as const;
+
+function applyContribution(
+  current: Capabilities,
+  contribution: CapabilityContribution | undefined
+): Capabilities {
+  if (typeof contribution !== 'object' || contribution === null) return current;
+
+  const next = { ...current };
+  for (const capability of capabilityNames) {
+    const value = contribution[capability];
+    if (typeof value === 'boolean') next[capability] = value;
+  }
+  return next;
+}
+
 function isCapabilities(value: unknown): value is Capabilities {
   if (typeof value !== 'object' || value === null) return false;
 
-  return [
-    'editValue',
-    'renameKey',
-    'delete',
-    'insert',
-    'move',
-    'copy',
-    'paste',
-    'inspect'
-  ].every(
+  return capabilityNames.every(
     (capability) =>
       typeof (value as Record<string, unknown>)[capability] === 'boolean'
   );
