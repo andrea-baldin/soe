@@ -9,6 +9,7 @@
     missingRequiredFields,
     objectEntries,
     replaceValueAtPath,
+    schemaCapabilityProvider,
     searchObject,
     ValueHistory,
     type ObjectSchema,
@@ -50,7 +51,7 @@
   const pluginHost = $derived(
     createPluginHost<ObjectEditorNodeProperties>({
       properties: {},
-      plugins
+      plugins: [{ capabilities: schemaCapabilityProvider }, ...plugins]
     })
   );
   const searchResults = $derived(searchObject(value, searchQuery));

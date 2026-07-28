@@ -906,6 +906,100 @@ describe('ObjectEditor', () => {
     expect(screen.queryAllByRole('alert')).toHaveLength(0);
   });
 
+  it('enforces recursive readonly schema policies', () => {
+    render(ObjectEditor, {
+      value: {
+        profile: {
+          name: 'Ada',
+          nested: { title: 'Programmer' }
+        }
+      },
+      schema: {
+        fields: {
+          profile: { readonly: true }
+        }
+      }
+    });
+
+    expect(
+      screen.queryByRole('textbox', { name: 'profile.name' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('textbox', { name: 'profile.nested.title' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Add property to profile' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Delete profile' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Paste profile' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('enforces schema key, object, and array structure policies', () => {
+    render(ObjectEditor, {
+      value: {
+        settings: { locale: 'it' },
+        values: ['first']
+      },
+      schema: {
+        fields: {
+          settings: {
+            additionalProperties: false,
+            removable: false,
+            renameable: false
+          },
+          values: {
+            maximumItems: 1,
+            minimumItems: 1,
+            items: { type: 'string' }
+          }
+        }
+      }
+    });
+
+    expect(
+      screen.queryByRole('button', { name: 'Add property to settings' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Rename settings' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Delete settings' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Append item to values' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Delete values[0]' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('lets later application plugins refine schema policy', () => {
+    const plugins: ObjectEditorPlugin[] = [
+      {
+        capabilities: {
+          provide: (context) =>
+            context.path.join('.') === 'name' ? { editValue: true } : undefined
+        }
+      }
+    ];
+
+    render(ObjectEditor, {
+      value: { name: 'Ada' },
+      schema: {
+        fields: {
+          name: { readonly: true }
+        }
+      },
+      plugins
+    });
+
+    expect(screen.getByRole('textbox', { name: 'name' })).toHaveValue('Ada');
+  });
+
   it('validates nested fields with root and path context', async () => {
     const user = userEvent.setup();
 
