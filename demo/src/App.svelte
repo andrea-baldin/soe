@@ -26,6 +26,7 @@
   const schema: ObjectSchema = composeObjectSchemas(
     schemaForType('number', {
       type: 'number',
+      minimum: 0,
       validate: (value) =>
         Number(value) >= 0 ? undefined : 'Numbers cannot be negative'
     }),
@@ -42,6 +43,8 @@
           additionalProperties: false,
           fields: {
             name: {
+              maximumLength: 80,
+              pattern: /^[A-Za-z ]+$/,
               required: true,
               type: 'string',
               validate: (value) =>

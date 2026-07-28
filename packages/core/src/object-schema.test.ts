@@ -192,6 +192,37 @@ describe('object schema', () => {
     ).toBe('Validation could not be completed');
   });
 
+  it('validates declarative number and string constraints before custom validators', () => {
+    const custom = vi.fn(() => 'Custom error');
+
+    expect(
+      validateField(4, { minimum: 5, validate: custom }, { path: [], root: {} })
+    ).toBe('Must be at least 5');
+    expect(validateField(11, { maximum: 10 }, { path: [], root: {} })).toBe(
+      'Must be at most 10'
+    );
+    expect(
+      validateField('ab', { minimumLength: 3 }, { path: [], root: {} })
+    ).toBe('Must contain at least 3 characters');
+    expect(
+      validateField('abcd', { maximumLength: 3 }, { path: [], root: {} })
+    ).toBe('Must contain at most 3 characters');
+    expect(
+      validateField('ABC', { pattern: /^\d+$/ }, { path: [], root: {} })
+    ).toBe('Must match /^\\d+$/');
+    expect(custom).not.toHaveBeenCalled();
+  });
+
+  it('resets stateful regular expressions between validations', () => {
+    const pattern = /^A/g;
+    const field = { pattern };
+    const context = { path: ['code'], root: {} };
+
+    expect(validateField('Ada', field, context)).toBeUndefined();
+    expect(validateField('Ada', field, context)).toBeUndefined();
+    expect(pattern.lastIndex).toBe(0);
+  });
+
   it('reports missing required own properties without reading values', () => {
     let getterCalls = 0;
     const value = Object.create({ inherited: true }) as Record<string, unknown>;

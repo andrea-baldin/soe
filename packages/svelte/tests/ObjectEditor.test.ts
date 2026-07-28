@@ -1200,6 +1200,42 @@ describe('ObjectEditor', () => {
     ).toBeInTheDocument();
   });
 
+  it('projects declarative constraints onto standard inputs', () => {
+    render(ObjectEditor, {
+      value: { quantity: 4, code: 'AB' },
+      schema: {
+        fields: {
+          quantity: { type: 'number', minimum: 1, maximum: 10 },
+          code: {
+            type: 'string',
+            minimumLength: 2,
+            maximumLength: 5,
+            pattern: /^[A-Z]+$/
+          }
+        }
+      }
+    });
+
+    expect(
+      screen.getByRole('spinbutton', { name: 'quantity' })
+    ).toHaveAttribute('min', '1');
+    expect(
+      screen.getByRole('spinbutton', { name: 'quantity' })
+    ).toHaveAttribute('max', '10');
+    expect(screen.getByRole('textbox', { name: 'code' })).toHaveAttribute(
+      'minlength',
+      '2'
+    );
+    expect(screen.getByRole('textbox', { name: 'code' })).toHaveAttribute(
+      'maxlength',
+      '5'
+    );
+    expect(screen.getByRole('textbox', { name: 'code' })).toHaveAttribute(
+      'pattern',
+      '^[A-Z]+$'
+    );
+  });
+
   it('reports and resolves missing required properties', async () => {
     const user = userEvent.setup();
 

@@ -182,6 +182,13 @@
 - Accessible error and non-blocking warning semantics
 - Summary counts, navigation, styling hooks, demo, and regression coverage
 
+## Milestone 16 — Declarative value constraints
+
+- Numeric minimum and maximum constraints
+- String length and regular-expression constraints
+- General type rules composed beneath specific field knowledge
+- Native input attributes, deterministic validation, demo, tests, and RFC
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom

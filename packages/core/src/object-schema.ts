@@ -22,7 +22,12 @@ export interface FieldSchema {
   readonly additionalProperties?: boolean;
   readonly type?: SchemaValueType;
   readonly maximumItems?: number;
+  readonly maximum?: number;
+  readonly maximumLength?: number;
+  readonly minimum?: number;
   readonly minimumItems?: number;
+  readonly minimumLength?: number;
+  readonly pattern?: RegExp;
   readonly readonly?: boolean;
   readonly removable?: boolean;
   readonly renameable?: boolean;
@@ -189,6 +194,33 @@ export function validateField(
     return `Expected ${schema.type}`;
   }
 
+  if (typeof value === 'number') {
+    if (schema.minimum !== undefined && value < schema.minimum) {
+      return `Must be at least ${schema.minimum}`;
+    }
+    if (schema.maximum !== undefined && value > schema.maximum) {
+      return `Must be at most ${schema.maximum}`;
+    }
+  }
+
+  if (typeof value === 'string') {
+    if (
+      schema.minimumLength !== undefined &&
+      value.length < schema.minimumLength
+    ) {
+      return `Must contain at least ${schema.minimumLength} characters`;
+    }
+    if (
+      schema.maximumLength !== undefined &&
+      value.length > schema.maximumLength
+    ) {
+      return `Must contain at most ${schema.maximumLength} characters`;
+    }
+    if (schema.pattern && !matchesPattern(value, schema.pattern)) {
+      return `Must match ${schema.pattern}`;
+    }
+  }
+
   if (!schema.validate) return undefined;
 
   try {
@@ -197,6 +229,13 @@ export function validateField(
   } catch {
     return 'Validation could not be completed';
   }
+}
+
+function matchesPattern(value: string, pattern: RegExp): boolean {
+  pattern.lastIndex = 0;
+  const matches = pattern.test(value);
+  pattern.lastIndex = 0;
+  return matches;
 }
 
 function matchesType(value: unknown, type: SchemaValueType): boolean {
