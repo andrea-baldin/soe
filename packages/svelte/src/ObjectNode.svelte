@@ -452,6 +452,8 @@
             id={fieldId}
             aria-label={nodePath}
             type="number"
+            min={fieldSchema?.minimum}
+            max={fieldSchema?.maximum}
             step="any"
             value={typeof value === 'number' && Number.isFinite(value)
               ? value
@@ -477,6 +479,9 @@
             id={fieldId}
             aria-label={nodePath}
             type="text"
+            minlength={fieldSchema?.minimumLength}
+            maxlength={fieldSchema?.maximumLength}
+            pattern={fieldSchema?.pattern?.source}
             value={stringEditorValue()}
             aria-invalid={validationIsError}
             aria-describedby={[
