@@ -3,6 +3,7 @@
  */
 
 import {
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   readdirSync,
@@ -12,6 +13,7 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 
 const repositoryRoot = new URL('../', import.meta.url);
 const temporaryDirectory = mkdtempSync(join(tmpdir(), 'soe-packages-'));
@@ -26,11 +28,13 @@ function run(command, arguments_, cwd = repositoryRoot) {
       ...process.env,
       npm_config_cache: join(temporaryDirectory, 'npm-cache')
     },
+    shell: process.platform === 'win32',
     stdio: 'inherit'
   });
 
   if (result.status !== 0) {
-    throw new Error(`${command} ${arguments_.join(' ')} failed`);
+    const reason = result.error?.message ?? `exit code ${result.status}`;
+    throw new Error(`${command} ${arguments_.join(' ')} failed: ${reason}`);
   }
 }
 
@@ -50,7 +54,7 @@ function packageTarball(name) {
 
 try {
   run('pnpm', ['build']);
-  run('mkdir', ['-p', tarballDirectory]);
+  mkdirSync(tarballDirectory, { recursive: true });
   run('pnpm', [
     '--filter',
     '@andrea-baldin/soe-core',
@@ -69,7 +73,7 @@ try {
   const coreTarball = packageTarball('@andrea-baldin/soe-core');
   const svelteTarball = packageTarball('@andrea-baldin/soe-svelte');
 
-  run('mkdir', ['-p', join(consumerDirectory, 'src')]);
+  mkdirSync(join(consumerDirectory, 'src'), { recursive: true });
   writeFileSync(
     join(consumerDirectory, 'package.json'),
     `${JSON.stringify(
@@ -81,8 +85,8 @@ try {
           build: 'vite build'
         },
         dependencies: {
-          '@andrea-baldin/soe-core': `file:${coreTarball}`,
-          '@andrea-baldin/soe-svelte': `file:${svelteTarball}`,
+          '@andrea-baldin/soe-core': pathToFileURL(coreTarball).href,
+          '@andrea-baldin/soe-svelte': pathToFileURL(svelteTarball).href,
           svelte: '5.56.8'
         },
         devDependencies: {
