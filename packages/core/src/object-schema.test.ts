@@ -1,8 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  composeObjectSchemas,
   fieldSchemaAtPath,
   missingRequiredFields,
+  resolveFieldSchema,
+  schemaForPath,
+  schemaForType,
+  schemaWhen,
   validateField,
   type ObjectSchema
 } from './object-schema.js';
@@ -27,6 +32,64 @@ describe('object schema', () => {
       'number'
     );
     expect(fieldSchemaAtPath(schema, ['missing'])).toBeUndefined();
+  });
+
+  it('composes type, predicate, and path knowledge in precedence order', () => {
+    const root = { orders: [{ discount: 15 }] };
+    const composed = composeObjectSchemas(
+      schemaForType('number', {
+        readonly: true,
+        validate: () => 'General number'
+      }),
+      schemaWhen(({ path }) => path.at(-1) === 'discount', {
+        removable: false
+      }),
+      schemaForPath(['orders', '*', 'discount'], {
+        readonly: false,
+        validate: (value) =>
+          Number(value) <= 20 ? undefined : 'Discount is too large'
+      })
+    );
+
+    expect(
+      resolveFieldSchema(composed, root, root.orders[0]!.discount, [
+        'orders',
+        0,
+        'discount'
+      ])
+    ).toMatchObject({
+      readonly: false,
+      removable: false
+    });
+  });
+
+  it('lets explicit field knowledge override general type rules', () => {
+    const composed = composeObjectSchemas(
+      schemaForType('string', { readonly: true }),
+      {
+        fields: {
+          name: { readonly: false, required: true }
+        }
+      }
+    );
+
+    expect(
+      resolveFieldSchema(composed, { name: 'Ada' }, 'Ada', ['name'])
+    ).toMatchObject({
+      readonly: false,
+      required: true
+    });
+  });
+
+  it('isolates failing schema predicates', () => {
+    const composed = schemaWhen(
+      () => {
+        throw new Error('Failure');
+      },
+      { readonly: true }
+    );
+
+    expect(resolveFieldSchema(composed, {}, 'value', ['name'])).toBeUndefined();
   });
 
   it('validates the explicit type before a custom validator', () => {

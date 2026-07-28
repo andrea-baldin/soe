@@ -1,8 +1,9 @@
 /**
- * Object validation collects schema issues without depending on rendering.
+ * Object validation collects resolved schema issues without rendering.
  */
 
 import {
+  resolveFieldSchema,
   validateField,
   type FieldSchema,
   type ObjectSchema
@@ -25,76 +26,87 @@ export function validateObject(
   if (!schema) return [];
 
   const issues: ValidationIssue[] = [];
-  validateFields(root, schema.fields, [], root, [], issues);
+  validateValue(root, [], root, schema, undefined, [], issues);
   return issues;
 }
 
-function validateFields(
+function validateValue(
   value: unknown,
-  fields: Readonly<Record<string, FieldSchema>>,
   path: ObjectPath,
   root: unknown,
+  objectSchema: ObjectSchema,
+  parentSchema: FieldSchema | undefined,
   ancestors: readonly object[],
   issues: ValidationIssue[]
 ): void {
+  const schema = resolveFieldSchema(
+    objectSchema,
+    root,
+    value,
+    path,
+    parentSchema
+  );
+  const message = validateField(value, schema, { path, root });
+  if (message) issues.push(issue('invalid', path, message));
+
   if (typeof value !== 'object' || value === null) return;
   if (ancestors.includes(value)) return;
 
   const nextAncestors = [...ancestors, value];
-  for (const [key, field] of Object.entries(fields)) {
-    const fieldPath = [...path, key];
-    const property = readOwnDataProperty(value, key);
+  reportMissingFields(value, schema?.fields, path, issues);
 
-    if (!property.present) {
-      if (field.required) {
-        issues.push(
-          issue('required', fieldPath, 'Required property is missing')
-        );
-      }
-      continue;
-    }
-
+  for (const entry of dataEntries(value)) {
     validateValue(
-      property.value,
-      field,
-      fieldPath,
+      entry.value,
+      [...path, entry.key],
       root,
+      objectSchema,
+      schema,
       nextAncestors,
       issues
     );
   }
 }
 
-function validateValue(
-  value: unknown,
-  schema: FieldSchema,
+function reportMissingFields(
+  value: object,
+  fields: Readonly<Record<string, FieldSchema>> | undefined,
   path: ObjectPath,
-  root: unknown,
-  ancestors: readonly object[],
   issues: ValidationIssue[]
 ): void {
-  const message = validateField(value, schema, { path, root });
-  if (message) issues.push(issue('invalid', path, message));
-
-  if (Array.isArray(value) && schema.items) {
-    if (ancestors.includes(value)) return;
-    const nextAncestors = [...ancestors, value];
-    for (let index = 0; index < value.length; index += 1) {
-      const descriptor = Object.getOwnPropertyDescriptor(value, index);
-      validateValue(
-        descriptor?.value,
-        schema.items,
-        [...path, index],
-        root,
-        nextAncestors,
-        issues
+  for (const [key, field] of Object.entries(fields ?? {})) {
+    if (field.required && !hasOwnProperty(value, key)) {
+      issues.push(
+        issue('required', [...path, key], 'Required property is missing')
       );
     }
-    return;
   }
+}
 
-  if (schema.fields) {
-    validateFields(value, schema.fields, path, root, ancestors, issues);
+function dataEntries(
+  value: object
+): readonly { readonly key: string | number; readonly value: unknown }[] {
+  try {
+    const keys = Array.isArray(value)
+      ? Array.from({ length: value.length }, (_, index) => index)
+      : Object.keys(value);
+
+    return keys.flatMap((key) => {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      return descriptor && 'value' in descriptor
+        ? [{ key, value: descriptor.value }]
+        : [];
+    });
+  } catch {
+    return [];
+  }
+}
+
+function hasOwnProperty(value: object, key: string): boolean {
+  try {
+    return Object.hasOwn(value, key);
+  } catch {
+    return false;
   }
 }
 
@@ -110,19 +122,4 @@ function issue(
     path: stablePath,
     formattedPath: formatObjectPath(stablePath)
   });
-}
-
-function readOwnDataProperty(
-  value: object,
-  key: string
-): { readonly present: boolean; readonly value?: unknown } {
-  try {
-    const descriptor = Object.getOwnPropertyDescriptor(value, key);
-    if (!descriptor) return { present: false };
-    if ('value' in descriptor)
-      return { present: true, value: descriptor.value };
-    return { present: true, value: undefined };
-  } catch {
-    return { present: false };
-  }
 }

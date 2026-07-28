@@ -30,5 +30,6 @@ and the project follows [Semantic Versioning](https://semver.org/).
 - Svelte 5 `@andreabaldin/soe-svelte` package with a standard-CSS interface.
 - Tailwind CSS integration demo without a runtime Tailwind dependency.
 
-[Unreleased]: https://github.com/andrea-baldin/soe/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/andrea-baldin/soe/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/andrea-baldin/soe/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/andrea-baldin/soe/releases/tag/v0.1.0
