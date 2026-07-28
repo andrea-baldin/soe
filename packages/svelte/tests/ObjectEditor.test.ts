@@ -135,7 +135,7 @@ describe('ObjectEditor', () => {
     expect(writeText).toHaveBeenCalledWith(
       '{\n  "active": true,\n  "name": "Ada"\n}'
     );
-    expect(screen.getByRole('status')).toHaveTextContent('Copied');
+    expect(screen.getByText('Copied')).toBeVisible();
   });
 
   it('isolates clipboard failures', async () => {
@@ -153,7 +153,7 @@ describe('ObjectEditor', () => {
 
     await user.click(screen.getByRole('button', { name: 'Copy name' }));
 
-    expect(screen.getByRole('status')).toHaveTextContent('Copy failed');
+    expect(screen.getByText('Copy failed')).toBeVisible();
     expect(screen.getByRole('textbox', { name: 'name' })).toHaveValue('Ada');
   });
 
@@ -535,6 +535,91 @@ describe('ObjectEditor', () => {
     await user.click(screen.getByRole('button', { name: 'Expand person' }));
 
     expect(screen.getByRole('textbox', { name: 'person.name' })).toBeVisible();
+  });
+
+  it('searches paths and values and expands matching branches', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditor, {
+      value: {
+        profile: {
+          name: 'Ada Lovelace'
+        }
+      }
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Collapse profile' }));
+    expect(
+      screen.queryByRole('textbox', { name: 'profile.name' })
+    ).not.toBeInTheDocument();
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search object' }),
+      'Ada'
+    );
+
+    expect(screen.getByText('1 result')).toBeVisible();
+    expect(screen.getByRole('textbox', { name: 'profile.name' })).toBeVisible();
+    expect(
+      screen
+        .getByRole('textbox', { name: 'profile.name' })
+        .closest('[data-soe-node]')
+    ).toHaveAttribute('data-soe-match', 'true');
+  });
+
+  it('navigates search results and focuses the active node', async () => {
+    const user = userEvent.setup();
+    const { container } = render(ObjectEditor, {
+      value: {
+        first: 'match',
+        second: 'match'
+      }
+    });
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search object' }),
+      'match'
+    );
+
+    expect(screen.getByText('2 results')).toBeVisible();
+    await user.click(
+      screen.getByRole('button', { name: 'Next search result' })
+    );
+
+    const second = container.querySelector<HTMLElement>(
+      '[data-soe-path="second"]'
+    );
+    expect(second).toHaveAttribute('data-soe-active-match', 'true');
+    expect(second).toHaveFocus();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Previous search result' })
+    );
+    expect(container.querySelector('[data-soe-path="first"]')).toHaveAttribute(
+      'data-soe-active-match',
+      'true'
+    );
+  });
+
+  it('finds values inside read-only inspected containers', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditor, {
+      value: {
+        references: new Map([['engine', 'Analytical Engine']])
+      }
+    });
+
+    await user.click(
+      screen.getByRole('button', { name: 'Collapse references' })
+    );
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search object' }),
+      'analytical'
+    );
+
+    expect(screen.getByText('Analytical Engine')).toBeVisible();
+    expect(screen.getByText('1 result')).toBeVisible();
   });
 
   it('stops at circular references without throwing', () => {

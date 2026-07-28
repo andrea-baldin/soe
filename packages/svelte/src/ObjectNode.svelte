@@ -42,6 +42,9 @@
     fieldSchema,
     pluginHost,
     inspectOnly = false,
+    matchPaths,
+    activeMatchPath,
+    searchActive,
     onupdate,
     onoperation
   }: {
@@ -58,6 +61,9 @@
     fieldSchema?: FieldSchema;
     pluginHost: PluginHost<ObjectEditorNodeProperties>;
     inspectOnly?: boolean;
+    matchPaths: readonly string[];
+    activeMatchPath?: string;
+    searchActive: boolean;
     onupdate: UpdateHandler;
     onoperation: OperationHandler;
   } = $props();
@@ -79,6 +85,16 @@
   );
   const childKeys = $derived(entries.map((entry) => String(entry.key)));
   const nodePath = $derived(formatObjectPath(path));
+  const matched = $derived(matchPaths.includes(nodePath));
+  const activeMatch = $derived(activeMatchPath === nodePath);
+  const containsMatch = $derived(
+    matchPaths.some(
+      (match) =>
+        match === nodePath ||
+        match.startsWith(`${nodePath}.`) ||
+        match.startsWith(`${nodePath}[`)
+    )
+  );
   const fieldId = $derived(`${editorId}-field-${encodeURIComponent(nodePath)}`);
   const validationId = $derived(`${fieldId}-validation`);
   const descriptionId = $derived(`${fieldId}-description`);
@@ -132,6 +148,12 @@
   const nextAncestors = $derived(
     container ? [...ancestors, value as object] : ancestors
   );
+
+  $effect(() => {
+    if (searchActive && containsMatch && container && !circular) {
+      expanded = true;
+    }
+  });
 
   function update(nextValue: EditableValue): void {
     onupdate(path, nextValue);
@@ -216,11 +238,16 @@
 
 <div
   class="object-node"
+  role="group"
+  aria-label={`Node ${nodePath}`}
   data-soe-node
   data-soe-path={nodePath}
   data-soe-kind={schemaType ?? objectValueKind(value)}
   data-soe-editable={editable}
   data-soe-valid={!nodeValidationMessage}
+  data-soe-match={matched || undefined}
+  data-soe-active-match={activeMatch || undefined}
+  tabindex="-1"
 >
   {#if container && !circular}
     <div class="object-field container-field">
@@ -271,6 +298,9 @@
             fieldSchema={childSchema(entry.key)}
             {pluginHost}
             inspectOnly={inspectOnly || !editableContainer}
+            {matchPaths}
+            {activeMatchPath}
+            {searchActive}
             {onupdate}
             {onoperation}
           />
@@ -436,6 +466,15 @@
 <style>
   .object-node {
     min-width: 0;
+  }
+
+  .object-node[data-soe-match='true'] > .object-field {
+    background: var(--soe-match, #fff4cc);
+  }
+
+  .object-node[data-soe-active-match='true'] > .object-field {
+    outline: 2px solid var(--soe-focus, #155eef);
+    outline-offset: -2px;
   }
 
   .object-field {
