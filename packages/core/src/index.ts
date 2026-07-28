@@ -20,6 +20,8 @@ export {
   isInspectableContainer
 } from './object-inspection.js';
 export type { InspectionEntry } from './object-inspection.js';
+export { searchObject } from './object-search.js';
+export type { ObjectSearchResult } from './object-search.js';
 export {
   formatObjectPath,
   replaceValueAtPath,
