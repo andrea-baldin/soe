@@ -175,6 +175,13 @@
 - Index-wise schema composition with immutable resolved definitions
 - Existing validation, capabilities, plugins, and rendering reused unchanged
 
+## Milestone 15 — Validation severity
+
+- Schema-level error and warning severity with error-compatible defaults
+- Severity preserved in recursive validation issues and required fields
+- Accessible error and non-blocking warning semantics
+- Summary counts, navigation, styling hooks, demo, and regression coverage
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom

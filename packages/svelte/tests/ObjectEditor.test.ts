@@ -1167,6 +1167,39 @@ describe('ObjectEditor', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('reports warnings without marking fields invalid', () => {
+    const { container } = render(ObjectEditor, {
+      value: { score: 4 },
+      schema: {
+        fields: {
+          score: {
+            type: 'number',
+            severity: 'warning',
+            validate: () => 'A score of 5 or more is recommended'
+          }
+        }
+      }
+    });
+
+    expect(screen.getByText('0 errors, 1 warning')).toBeVisible();
+    expect(
+      screen
+        .getAllByRole('status')
+        .find((status) =>
+          status.textContent?.includes('A score of 5 or more is recommended')
+        )
+    ).toBeVisible();
+    expect(screen.getByRole('spinbutton', { name: 'score' })).toHaveAttribute(
+      'aria-invalid',
+      'false'
+    );
+    expect(
+      container.querySelector(
+        '[data-soe-validation-summary] li[data-severity="warning"]'
+      )
+    ).toBeInTheDocument();
+  });
+
   it('reports and resolves missing required properties', async () => {
     const user = userEvent.setup();
 
