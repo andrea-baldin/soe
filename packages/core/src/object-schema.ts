@@ -17,11 +17,26 @@ export type FieldValidator = (
 ) => string | undefined;
 
 export interface FieldSchema {
+  readonly additionalProperties?: boolean;
   readonly type?: SchemaValueType;
+  readonly maximumItems?: number;
+  readonly minimumItems?: number;
+  readonly readonly?: boolean;
+  readonly removable?: boolean;
+  readonly renameable?: boolean;
   readonly required?: boolean;
   readonly fields?: Readonly<Record<string, FieldSchema>>;
   readonly items?: FieldSchema;
   readonly validate?: FieldValidator;
+}
+
+export function inheritFieldSchema(
+  schema: FieldSchema | undefined,
+  parent: FieldSchema | undefined
+): FieldSchema | undefined {
+  if (!parent?.readonly) return schema;
+  if (schema?.readonly) return schema;
+  return { ...schema, readonly: true };
 }
 
 export interface ObjectSchema {
