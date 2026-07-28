@@ -17,6 +17,7 @@ export interface ValidationIssue {
   readonly message: string;
   readonly path: ObjectPath;
   readonly formattedPath: string;
+  readonly severity: 'error' | 'warning';
 }
 
 export function validateObject(
@@ -47,7 +48,9 @@ function validateValue(
     parentSchema
   );
   const message = validateField(value, schema, { path, root });
-  if (message) issues.push(issue('invalid', path, message));
+  if (message) {
+    issues.push(issue('invalid', path, message, schema?.severity ?? 'error'));
+  }
 
   if (typeof value !== 'object' || value === null) return;
   if (ancestors.includes(value)) return;
@@ -77,7 +80,12 @@ function reportMissingFields(
   for (const [key, field] of Object.entries(fields ?? {})) {
     if (field.required && !hasOwnProperty(value, key)) {
       issues.push(
-        issue('required', [...path, key], 'Required property is missing')
+        issue(
+          'required',
+          [...path, key],
+          'Required property is missing',
+          field.severity ?? 'error'
+        )
       );
     }
   }
@@ -113,13 +121,15 @@ function hasOwnProperty(value: object, key: string): boolean {
 function issue(
   code: ValidationIssueCode,
   path: ObjectPath,
-  message: string
+  message: string,
+  severity: 'error' | 'warning'
 ): ValidationIssue {
   const stablePath = Object.freeze([...path]);
   return Object.freeze({
     code,
     message,
     path: stablePath,
-    formattedPath: formatObjectPath(stablePath)
+    formattedPath: formatObjectPath(stablePath),
+    severity
   });
 }

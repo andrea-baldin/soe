@@ -60,6 +60,37 @@ describe('validateObject', () => {
     ]);
   });
 
+  it('preserves warning severity for field and required issues', () => {
+    expect(
+      validateObject(
+        { score: 4 },
+        {
+          fields: {
+            score: {
+              severity: 'warning',
+              validate: () => 'Score is below the recommendation'
+            },
+            note: {
+              required: true,
+              severity: 'warning'
+            }
+          }
+        }
+      )
+    ).toMatchObject([
+      {
+        code: 'required',
+        formattedPath: 'note',
+        severity: 'warning'
+      },
+      {
+        code: 'invalid',
+        formattedPath: 'score',
+        severity: 'warning'
+      }
+    ]);
+  });
+
   it('validates values discovered through type and wildcard path rules', () => {
     const value = {
       limit: -1,

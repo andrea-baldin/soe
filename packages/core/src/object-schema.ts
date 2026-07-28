@@ -6,6 +6,7 @@ import type { ObjectPath } from './object-path.js';
 import { objectValueKind, type ObjectValueKind } from './object-value.js';
 
 export type SchemaValueType = 'boolean' | 'number' | 'string';
+export type ValidationSeverity = 'error' | 'warning';
 
 export interface FieldValidationContext {
   readonly path: ObjectPath;
@@ -26,6 +27,7 @@ export interface FieldSchema {
   readonly removable?: boolean;
   readonly renameable?: boolean;
   readonly required?: boolean;
+  readonly severity?: ValidationSeverity;
   readonly fields?: Readonly<Record<string, FieldSchema>>;
   readonly items?: FieldSchema;
   readonly prefixItems?: readonly FieldSchema[];

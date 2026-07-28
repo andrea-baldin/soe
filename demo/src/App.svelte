@@ -33,7 +33,10 @@
     {
       fields: {
         age: {
-          type: 'number'
+          type: 'number',
+          severity: 'warning',
+          validate: (value) =>
+            Number(value) >= 40 ? undefined : 'Ages below 40 are highlighted'
         },
         profile: {
           additionalProperties: false,

@@ -51,7 +51,18 @@
   const missingRequired = $derived(
     missingRequiredFields(value, rootSchema?.fields)
   );
+  const missingRequiredHasError = $derived(
+    missingRequired.some(
+      (key) => rootSchema?.fields?.[key]?.severity !== 'warning'
+    )
+  );
   const validationIssues = $derived(validateObject(value, schema));
+  const validationErrors = $derived(
+    validationIssues.filter((issue) => issue.severity === 'error')
+  );
+  const validationWarnings = $derived(
+    validationIssues.filter((issue) => issue.severity === 'warning')
+  );
   const validationPaths = $derived(
     validationIssues.map((issue) => issue.formattedPath)
   );
@@ -273,9 +284,15 @@
           ? 'validation issue'
           : 'validation issues'}
       </p>
+      <p class="validation-counts">
+        {validationErrors.length}
+        {validationErrors.length === 1 ? 'error' : 'errors'},
+        {validationWarnings.length}
+        {validationWarnings.length === 1 ? 'warning' : 'warnings'}
+      </p>
       <ul>
         {#each validationIssues as issue (issue.formattedPath)}
-          <li>
+          <li data-severity={issue.severity}>
             <button
               type="button"
               onclick={() => focusValidationPath(issue.path)}
@@ -288,7 +305,12 @@
     </section>
   {/if}
   {#if missingRequired.length}
-    <p class="schema-error" role="alert" data-soe-required>
+    <p
+      class:schema-error={missingRequiredHasError}
+      class:schema-warning={!missingRequiredHasError}
+      role={missingRequiredHasError ? 'alert' : 'status'}
+      data-soe-required
+    >
       Required properties missing: {missingRequired.join(', ')}
     </p>
   {/if}
@@ -434,9 +456,17 @@
     border-bottom: 1px solid var(--soe-border, #d9dee7);
   }
 
+  .schema-warning {
+    margin: 0;
+    padding: 0.5rem 0.85rem;
+    color: var(--soe-warning, #a15c00);
+    font-size: 0.8rem;
+    border-bottom: 1px solid var(--soe-border, #d9dee7);
+  }
+
   .validation-summary {
     padding: 0.5rem 0.85rem;
-    color: var(--soe-error, #b42318);
+    color: var(--soe-muted, #667085);
     font-size: 0.8rem;
     border-bottom: 1px solid var(--soe-border, #d9dee7);
   }
@@ -448,6 +478,18 @@
 
   .validation-summary ul {
     padding: 0.25rem 0 0 1rem;
+  }
+
+  .validation-counts {
+    color: var(--soe-muted, #667085);
+  }
+
+  .validation-summary li[data-severity='error'] {
+    color: var(--soe-error, #b42318);
+  }
+
+  .validation-summary li[data-severity='warning'] {
+    color: var(--soe-warning, #a15c00);
   }
 
   .validation-summary button {

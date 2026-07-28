@@ -121,10 +121,18 @@
   const validationMessage = $derived(
     validateField(value, fieldSchema, { path, root })
   );
+  const validationIsError = $derived(
+    Boolean(validationMessage) && fieldSchema?.severity !== 'warning'
+  );
   const missingRequired = $derived(
     Array.isArray(value)
       ? []
       : missingRequiredFields(value, fieldSchema?.fields)
+  );
+  const missingRequiredHasError = $derived(
+    missingRequired.some(
+      (key) => fieldSchema?.fields?.[key]?.severity !== 'warning'
+    )
   );
   const nodeValidationMessage = $derived(
     [
@@ -135,6 +143,9 @@
     ]
       .filter(Boolean)
       .join('. ')
+  );
+  const nodeValidationIsError = $derived(
+    validationIsError || missingRequiredHasError
   );
   const nodeResolution = $derived(
     pluginHost.resolve({
@@ -282,7 +293,7 @@
   data-soe-path={nodePath}
   data-soe-kind={schemaType ?? objectValueKind(value)}
   data-soe-editable={editable}
-  data-soe-valid={!nodeValidationMessage}
+  data-soe-valid={!nodeValidationIsError}
   data-soe-match={matched || undefined}
   data-soe-active-match={activeMatch || undefined}
   data-soe-validation-issue={hasValidationIssue || undefined}
@@ -365,7 +376,12 @@
       </div>
     {/if}
     {#if nodeValidationMessage}
-      <p id={validationId} class="validation-error" role="alert">
+      <p
+        id={validationId}
+        class:validation-error={nodeValidationIsError}
+        class:validation-warning={!nodeValidationIsError}
+        role={nodeValidationIsError ? 'alert' : 'status'}
+      >
         {nodeValidationMessage}
       </p>
     {/if}
@@ -401,7 +417,7 @@
           <select
             id={fieldId}
             aria-label={nodePath}
-            aria-invalid={Boolean(validationMessage)}
+            aria-invalid={validationIsError}
             aria-describedby={[
               description ? descriptionId : undefined,
               validationMessage ? validationId : undefined
@@ -422,7 +438,7 @@
             aria-label={nodePath}
             type="checkbox"
             checked={value === true}
-            aria-invalid={Boolean(validationMessage)}
+            aria-invalid={validationIsError}
             aria-describedby={[
               description ? descriptionId : undefined,
               validationMessage ? validationId : undefined
@@ -440,7 +456,7 @@
             value={typeof value === 'number' && Number.isFinite(value)
               ? value
               : ''}
-            aria-invalid={Boolean(validationMessage)}
+            aria-invalid={validationIsError}
             aria-describedby={[
               description ? descriptionId : undefined,
               validationMessage ? validationId : undefined
@@ -462,7 +478,7 @@
             aria-label={nodePath}
             type="text"
             value={stringEditorValue()}
-            aria-invalid={Boolean(validationMessage)}
+            aria-invalid={validationIsError}
             aria-describedby={[
               description ? descriptionId : undefined,
               validationMessage ? validationId : undefined
@@ -498,7 +514,12 @@
       <p id={descriptionId} class="node-description">{description}</p>
     {/if}
     {#if validationMessage}
-      <p id={validationId} class="validation-error" role="alert">
+      <p
+        id={validationId}
+        class:validation-error={validationIsError}
+        class:validation-warning={!validationIsError}
+        role={validationIsError ? 'alert' : 'status'}
+      >
         {validationMessage}
       </p>
     {/if}
@@ -668,6 +689,14 @@
     margin: 0;
     padding: 0.25rem 0.85rem 0.45rem;
     color: var(--soe-error, #b42318);
+    font-size: 0.8rem;
+    border-bottom: 1px solid var(--soe-border, #d9dee7);
+  }
+
+  .validation-warning {
+    margin: 0;
+    padding: 0.25rem 0.85rem 0.45rem;
+    color: var(--soe-warning, #a15c00);
     font-size: 0.8rem;
     border-bottom: 1px solid var(--soe-border, #d9dee7);
   }

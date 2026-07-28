@@ -57,7 +57,8 @@ export type {
   SchemaPathPattern,
   SchemaRule,
   SchemaRuleContext,
-  SchemaValueType
+  SchemaValueType,
+  ValidationSeverity
 } from './object-schema.js';
 export {
   createCapabilityResolver,
