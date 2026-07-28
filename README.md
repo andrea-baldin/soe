@@ -136,6 +136,8 @@ Whole-object issue discovery is defined by the
 [Validation Report](docs/architecture/RFC-0022-validation-report.md).
 Public package identity and release verification are defined by
 [Release Packaging](docs/architecture/RFC-0023-release-packaging.md).
+OIDC publication and release invariants are defined by
+[Release Automation](docs/architecture/RFC-0024-release-automation.md).
 
 ## Releases
 

@@ -154,6 +154,13 @@
 - Isolated tarball installation and Svelte consumer build
 - Release notes, maintainer procedure, and CI package verification
 
+## Milestone 12 — Release automation
+
+- GitHub Actions publication from an explicit GitHub Release
+- npm Trusted Publishing with short-lived OpenID Connect credentials
+- Matching tag, package version, dependency, and changelog enforcement
+- Verified tarball publication in Core → Svelte order
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom
