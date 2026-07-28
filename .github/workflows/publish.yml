@@ -49,12 +49,12 @@ jobs:
       - name: Pack release artifacts
         shell: bash
         run: |
-          mkdir -p artifacts
-          pnpm --filter @andreabaldin/soe-core pack --pack-destination artifacts
-          pnpm --filter @andreabaldin/soe-svelte pack --pack-destination artifacts
+          mkdir -p "$GITHUB_WORKSPACE/artifacts"
+          pnpm --filter @andreabaldin/soe-core pack --pack-destination "$GITHUB_WORKSPACE/artifacts"
+          pnpm --filter @andreabaldin/soe-svelte pack --pack-destination "$GITHUB_WORKSPACE/artifacts"
 
       - name: Publish core
-        run: npm publish "artifacts/andreabaldin-soe-core-${GITHUB_REF_NAME#v}.tgz"
+        run: npm publish "./artifacts/andreabaldin-soe-core-${GITHUB_REF_NAME#v}.tgz"
 
       - name: Publish Svelte
-        run: npm publish "artifacts/andreabaldin-soe-svelte-${GITHUB_REF_NAME#v}.tgz"
+        run: npm publish "./artifacts/andreabaldin-soe-svelte-${GITHUB_REF_NAME#v}.tgz"
