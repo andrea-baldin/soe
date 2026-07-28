@@ -17,7 +17,7 @@ export default defineConfig({
       reporter: ['text', 'html']
     },
     environment: 'jsdom',
-    include: ['packages/**/*.test.ts'],
+    include: ['packages/**/*.test.ts', 'scripts/**/*.test.mjs'],
     setupFiles: ['./vitest.setup.ts']
   }
 });
