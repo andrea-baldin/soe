@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { formatObjectPath } from '@soe/core';
+  import { formatObjectPath } from '@andrea-baldin/soe-core';
   import type { ObjectEditorValueEditorProps } from '../src/index.js';
 
   let { context, commit }: ObjectEditorValueEditorProps = $props();

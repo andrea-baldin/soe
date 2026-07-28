@@ -1,9 +1,24 @@
 {
-  "name": "@soe/svelte",
+  "name": "@andrea-baldin/soe-svelte",
   "version": "0.1.0",
-  "private": true,
   "description": "A simple Svelte object editor",
+  "keywords": [
+    "object-editor",
+    "svelte",
+    "svelte-5",
+    "typescript"
+  ],
+  "homepage": "https://github.com/andrea-baldin/soe#readme",
+  "bugs": "https://github.com/andrea-baldin/soe/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrea-baldin/soe.git",
+    "directory": "packages/svelte"
+  },
+  "license": "Apache-2.0",
+  "author": "Andrea Baldin <andreabaldin@hotmail.com>",
   "type": "module",
+  "types": "./dist/index.d.ts",
   "svelte": "./dist/index.js",
   "sideEffects": [
     "**/*.css"
@@ -18,12 +33,16 @@
       "import": "./dist/index.js"
     }
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "build": "svelte-package --input src",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
-    "@soe/core": "workspace:*"
+    "@andrea-baldin/soe-core": "workspace:*"
   },
   "peerDependencies": {
     "svelte": "^5.0.0"

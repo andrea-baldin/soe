@@ -10,7 +10,7 @@
     type Capabilities,
     type ObjectPath,
     type StructuralOperation
-  } from '@soe/core';
+  } from '@andrea-baldin/soe-core';
 
   type OperationHandler = (operation: StructuralOperation) => void;
   type PasteHandler = (path: ObjectPath, value: unknown) => void;

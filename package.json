@@ -8,14 +8,14 @@
     "node": ">=22.12"
   },
   "scripts": {
-    "build": "pnpm --filter @soe/core build && pnpm --filter @soe/svelte build && pnpm --filter @soe/demo build",
+    "build": "pnpm --filter @andrea-baldin/soe-core build && pnpm --filter @andrea-baldin/soe-svelte build && pnpm --filter @soe/demo build",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck",
-    "dev": "pnpm --filter @soe/core build && pnpm --filter @soe/demo dev",
+    "dev": "pnpm --filter @andrea-baldin/soe-core build && pnpm --filter @soe/demo dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "test": "vitest run",
-    "typecheck": "pnpm --filter @soe/core typecheck && pnpm --filter @soe/svelte typecheck && pnpm --filter @soe/demo typecheck"
+    "typecheck": "pnpm --filter @andrea-baldin/soe-core typecheck && pnpm --filter @andrea-baldin/soe-svelte typecheck && pnpm --filter @soe/demo typecheck"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

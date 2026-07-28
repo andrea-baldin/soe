@@ -2,7 +2,10 @@
  * ObjectEditorPlugin is the public Svelte registration boundary for extensions.
  */
 
-import type { ObjectPlugin, ResolvedNodeContext } from '@soe/core';
+import type {
+  ObjectPlugin,
+  ResolvedNodeContext
+} from '@andrea-baldin/soe-core';
 import type { Component } from 'svelte';
 
 export interface ObjectEditorValueEditorProps {
