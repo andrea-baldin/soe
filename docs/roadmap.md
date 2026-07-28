@@ -168,6 +168,13 @@
 - Ordered rule composition with explicit field knowledge applied last
 - One resolved schema for validation, capabilities, plugins, and rendering
 
+## Milestone 14 — Tuple schemas
+
+- Positional `prefixItems` knowledge for heterogeneous arrays
+- General `items` policy composed beneath position-specific overrides
+- Index-wise schema composition with immutable resolved definitions
+- Existing validation, capabilities, plugins, and rendering reused unchanged
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom

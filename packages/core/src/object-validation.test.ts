@@ -88,6 +88,27 @@ describe('validateObject', () => {
     ]);
   });
 
+  it('validates heterogeneous array positions with tuple schemas', () => {
+    const issues = validateObject(
+      { row: ['Ada', 'not-a-number', false] },
+      {
+        fields: {
+          row: {
+            items: { type: 'boolean' },
+            prefixItems: [{ type: 'string' }, { type: 'number' }]
+          }
+        }
+      }
+    );
+
+    expect(issues).toMatchObject([
+      {
+        formattedPath: 'row[1]',
+        message: 'Expected number'
+      }
+    ]);
+  });
+
   it('does not invoke accessors or loop through circular values', () => {
     let reads = 0;
     const value: Record<string, unknown> = {

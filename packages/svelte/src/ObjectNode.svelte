@@ -9,6 +9,7 @@
     inheritFieldSchema,
     isEditableContainer,
     isInspectableContainer,
+    mergeFieldSchemas,
     missingRequiredFields,
     objectEntries,
     objectValueKind,
@@ -266,7 +267,9 @@
     }
 
     const schema =
-      typeof key === 'number' ? fieldSchema?.items : fieldSchema?.fields?.[key];
+      typeof key === 'number'
+        ? mergeFieldSchemas(fieldSchema?.items, fieldSchema?.prefixItems?.[key])
+        : fieldSchema?.fields?.[key];
     return inheritFieldSchema(schema, fieldSchema);
   }
 </script>
