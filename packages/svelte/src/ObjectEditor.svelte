@@ -16,7 +16,7 @@
     type ObjectSchema,
     type ObjectPath,
     type StructuralOperation
-  } from '@andrea-baldin/soe-core';
+  } from '@andreabaldin/soe-core';
 
   import AddProperty from './AddProperty.svelte';
   import ObjectNode from './ObjectNode.svelte';

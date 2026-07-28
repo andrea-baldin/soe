@@ -2,8 +2,8 @@
 
 SOE publishes two public packages with the same version:
 
-- `@andrea-baldin/soe-core`
-- `@andrea-baldin/soe-svelte`
+- `@andreabaldin/soe-core`
+- `@andreabaldin/soe-svelte`
 
 The core package must always be published before the Svelte package.
 
@@ -33,12 +33,14 @@ The npm account must own the `@andrea-baldin` scope and have two-factor
 authentication or trusted publishing configured.
 
 ```sh
-pnpm --filter @andrea-baldin/soe-core publish --access public --provenance
-pnpm --filter @andrea-baldin/soe-svelte publish --access public --provenance
+pnpm --filter @andreabaldin/soe-core publish --access public --no-provenance
+pnpm --filter @andreabaldin/soe-svelte publish --access public --no-provenance
 ```
 
-Publish only from a clean tagged commit. After publication, create the GitHub
-release from the same tag and use the matching changelog section as its notes.
+These commands are for a local release. Provenance requires a supported CI
+provider and will be enabled by the future trusted-publishing workflow. Publish
+only from a clean tagged commit. After publication, create the GitHub release
+from the same tag and use the matching changelog section as its notes.
 
 ## Verify
 
@@ -46,7 +48,7 @@ Check that both registry pages show the same version, repository, license, and
 README. In a clean Svelte 5 project, install the public component:
 
 ```sh
-npm install @andrea-baldin/soe-svelte
+npm install @andreabaldin/soe-svelte
 ```
 
 Import `ObjectEditor` and run the project's production build once more.

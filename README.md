@@ -7,7 +7,7 @@ providing clarity, structure, and guidance without getting in the way.
 
 ```svelte
 <script lang="ts">
-  import { ObjectEditor } from '@andrea-baldin/soe-svelte';
+  import { ObjectEditor } from '@andreabaldin/soe-svelte';
 
   let value = $state({
     name: 'Ada',
@@ -33,7 +33,7 @@ the project documents that guide future work.
 
 ```svelte
 <script lang="ts">
-  import type { ObjectSchema } from '@andrea-baldin/soe-core';
+  import type { ObjectSchema } from '@andreabaldin/soe-core';
 
   const schema: ObjectSchema = {
     fields: {
@@ -53,14 +53,14 @@ the project documents that guide future work.
 ## Installation
 
 ```sh
-npm install @andrea-baldin/soe-svelte
+npm install @andreabaldin/soe-svelte
 ```
 
-The Svelte package installs `@andrea-baldin/soe-core` automatically. Install
+The Svelte package installs `@andreabaldin/soe-core` automatically. Install
 the core package directly only for framework-independent integrations:
 
 ```sh
-npm install @andrea-baldin/soe-core
+npm install @andreabaldin/soe-core
 ```
 
 ## Development

@@ -59,7 +59,7 @@ importers:
 
   demo:
     dependencies:
-      '@andrea-baldin/soe-svelte':
+      '@andreabaldin/soe-svelte':
         specifier: workspace:*
         version: link:../packages/svelte
       svelte:
@@ -86,7 +86,7 @@ importers:
 
   packages/svelte:
     dependencies:
-      '@andrea-baldin/soe-core':
+      '@andreabaldin/soe-core':
         specifier: workspace:*
         version: link:../core
     devDependencies:

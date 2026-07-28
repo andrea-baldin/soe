@@ -9,8 +9,8 @@
     "moduleResolution": "Bundler",
     "noUncheckedIndexedAccess": true,
     "paths": {
-      "@andrea-baldin/soe-core": ["./packages/core/src/index.ts"],
-      "@andrea-baldin/soe-svelte": ["./packages/svelte/src/index.ts"]
+      "@andreabaldin/soe-core": ["./packages/core/src/index.ts"],
+      "@andreabaldin/soe-svelte": ["./packages/svelte/src/index.ts"]
     },
     "resolveJsonModule": true,
     "skipLibCheck": true,
