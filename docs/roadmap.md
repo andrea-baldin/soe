@@ -161,6 +161,13 @@
 - Matching tag, package version, dependency, and changelog enforcement
 - Verified tarball publication in Core → Svelte order
 
+## Milestone 13 — Schema composition
+
+- Reusable schemas composed without changing `ObjectEditor`
+- Runtime value-type, wildcard path, and safe predicate rules
+- Ordered rule composition with explicit field knowledge applied last
+- One resolved schema for validation, capabilities, plugins, and rendering
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom

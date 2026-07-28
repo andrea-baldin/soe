@@ -12,6 +12,10 @@ and the project follows [Semantic Versioning](https://semver.org/).
 - Trusted npm publishing through GitHub Actions and OpenID Connect.
 - Release contract validation for package names, versions, tags, dependencies,
   and changelog entries.
+- Composable schema rules for runtime value types, wildcard paths, and safe
+  semantic predicates.
+- One resolved schema shared by rendering, validation, capabilities, and
+  plugins.
 
 ## [0.1.0] - 2026-07-28
 

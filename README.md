@@ -50,6 +50,28 @@ the project documents that guide future work.
 <ObjectEditor bind:value {schema} />
 ```
 
+Schemas can also describe values by runtime type and specialize exact or
+wildcard paths without adding component properties:
+
+```ts
+import {
+  composeObjectSchemas,
+  schemaForPath,
+  schemaForType
+} from '@andreabaldin/soe-core';
+
+const schema = composeObjectSchemas(
+  schemaForType('number', {
+    validate: (value) =>
+      Number(value) >= 0 ? undefined : 'Numbers cannot be negative'
+  }),
+  schemaForPath(['orders', '*', 'discount'], {
+    validate: (value) =>
+      Number(value) <= 20 ? undefined : 'Discount is too large'
+  })
+);
+```
+
 ## Installation
 
 ```sh
@@ -138,6 +160,8 @@ Public package identity and release verification are defined by
 [Release Packaging](docs/architecture/RFC-0023-release-packaging.md).
 OIDC publication and release invariants are defined by
 [Release Automation](docs/architecture/RFC-0024-release-automation.md).
+Reusable type and path knowledge is defined by
+[Schema Composition](docs/architecture/RFC-0025-schema-composition.md).
 
 ## Releases
 
