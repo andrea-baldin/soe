@@ -119,6 +119,8 @@ Safe graph discovery and result focus are defined by
 [Search and Navigation](docs/architecture/RFC-0020-search-navigation.md).
 Declarative operation constraints are defined by
 [Schema-driven Policies](docs/architecture/RFC-0021-schema-policies.md).
+Whole-object issue discovery is defined by the
+[Validation Report](docs/architecture/RFC-0022-validation-report.md).
 
 ## License
 

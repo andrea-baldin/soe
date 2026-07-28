@@ -140,6 +140,13 @@
 - Framework-independent schema capability provider
 - Recursive policy inheritance with application-plugin precedence
 
+## Milestone 10 — Validation report
+
+- Framework-independent recursive validation issues
+- Missing and invalid values with canonical paths
+- Accessible summary and direct issue navigation
+- Automatic expansion and visual state for invalid branches
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom
