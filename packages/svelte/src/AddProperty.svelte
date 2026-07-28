@@ -6,7 +6,7 @@
     formatObjectPath,
     type ObjectPath,
     type StructuralOperation
-  } from '@andrea-baldin/soe-core';
+  } from '@andreabaldin/soe-core';
 
   type OperationHandler = (operation: StructuralOperation) => void;
 

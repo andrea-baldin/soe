@@ -20,8 +20,8 @@ and the project follows [Semantic Versioning](https://semver.org/).
 - Safe copy and paste, special-value inspection, custom value editors, and
   search navigation.
 - Schema-driven editing policies.
-- Framework-independent `@andrea-baldin/soe-core` package.
-- Svelte 5 `@andrea-baldin/soe-svelte` package with a standard-CSS interface.
+- Framework-independent `@andreabaldin/soe-core` package.
+- Svelte 5 `@andreabaldin/soe-svelte` package with a standard-CSS interface.
 - Tailwind CSS integration demo without a runtime Tailwind dependency.
 
 [Unreleased]: https://github.com/andrea-baldin/soe/compare/v0.1.0...HEAD

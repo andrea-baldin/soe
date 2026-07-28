@@ -66,21 +66,21 @@ try {
   mkdirSync(tarballDirectory, { recursive: true });
   runPnpm([
     '--filter',
-    '@andrea-baldin/soe-core',
+    '@andreabaldin/soe-core',
     'pack',
     '--pack-destination',
     tarballDirectory
   ]);
   runPnpm([
     '--filter',
-    '@andrea-baldin/soe-svelte',
+    '@andreabaldin/soe-svelte',
     'pack',
     '--pack-destination',
     tarballDirectory
   ]);
 
-  const coreTarball = packageTarball('@andrea-baldin/soe-core');
-  const svelteTarball = packageTarball('@andrea-baldin/soe-svelte');
+  const coreTarball = packageTarball('@andreabaldin/soe-core');
+  const svelteTarball = packageTarball('@andreabaldin/soe-svelte');
 
   mkdirSync(join(consumerDirectory, 'src'), { recursive: true });
   writeFileSync(
@@ -94,8 +94,8 @@ try {
           build: 'vite build'
         },
         dependencies: {
-          '@andrea-baldin/soe-core': pathToFileURL(coreTarball).href,
-          '@andrea-baldin/soe-svelte': pathToFileURL(svelteTarball).href,
+          '@andreabaldin/soe-core': pathToFileURL(coreTarball).href,
+          '@andreabaldin/soe-svelte': pathToFileURL(svelteTarball).href,
           svelte: '5.56.8'
         },
         devDependencies: {
@@ -110,7 +110,7 @@ try {
   writeFileSync(
     join(consumerDirectory, 'pnpm-workspace.yaml'),
     `overrides:
-  '@andrea-baldin/soe-core': '${pathToFileURL(coreTarball).href}'
+  '@andreabaldin/soe-core': '${pathToFileURL(coreTarball).href}'
 `
   );
   writeFileSync(
@@ -120,7 +120,7 @@ try {
   writeFileSync(
     join(consumerDirectory, 'src', 'App.svelte'),
     `<script>
-  import { ObjectEditor } from '@andrea-baldin/soe-svelte';
+  import { ObjectEditor } from '@andreabaldin/soe-svelte';
 
   let value = $state({ name: 'Ada', active: true });
 </script>
@@ -131,7 +131,7 @@ try {
   writeFileSync(
     join(consumerDirectory, 'src', 'main.js'),
     `import { mount } from 'svelte';
-import { formatObjectPath } from '@andrea-baldin/soe-core';
+import { formatObjectPath } from '@andreabaldin/soe-core';
 import App from './App.svelte';
 
 if (formatObjectPath(['profile', 0]) !== 'profile[0]') {
@@ -158,7 +158,7 @@ export default defineConfig({ plugins: [svelte()] });
       join(
         consumerDirectory,
         'node_modules',
-        '@andrea-baldin',
+        '@andreabaldin',
         'soe-svelte',
         'package.json'
       ),
@@ -167,7 +167,7 @@ export default defineConfig({ plugins: [svelte()] });
   );
 
   if (
-    svelteManifest.dependencies?.['@andrea-baldin/soe-core'] !==
+    svelteManifest.dependencies?.['@andreabaldin/soe-core'] !==
     svelteManifest.version
   ) {
     throw new Error(

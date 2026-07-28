@@ -149,7 +149,7 @@
 
 ## Milestone 11 — Release candidate
 
-- Public `@andrea-baldin/soe-core` and `@andrea-baldin/soe-svelte` package identity
+- Public `@andreabaldin/soe-core` and `@andreabaldin/soe-svelte` package identity
 - Complete npm metadata, export maps, license, and package documentation
 - Isolated tarball installation and Svelte consumer build
 - Release notes, maintainer procedure, and CI package verification

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { ObjectEditor } from '@andrea-baldin/soe-svelte';
-  import type { ObjectEditorPlugin } from '@andrea-baldin/soe-svelte';
-  import type { ObjectSchema } from '@andrea-baldin/soe-core';
+  import { ObjectEditor } from '@andreabaldin/soe-svelte';
+  import type { ObjectEditorPlugin } from '@andreabaldin/soe-svelte';
+  import type { ObjectSchema } from '@andreabaldin/soe-core';
   import DateEditor from './DateEditor.svelte';
 
   let value = $state<Record<string, unknown>>({

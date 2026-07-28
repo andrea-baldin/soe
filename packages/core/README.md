@@ -1,18 +1,18 @@
-# @andrea-baldin/soe-core
+# @andreabaldin/soe-core
 
 Framework-independent object inspection, editing, schema, validation, capability,
 property, and plugin foundations for SOE.
 
-Most Svelte applications should install `@andrea-baldin/soe-svelte`, which
+Most Svelte applications should install `@andreabaldin/soe-svelte`, which
 depends on this package. Install the core directly when building integrations
 that do not render Svelte components.
 
 ```sh
-npm install @andrea-baldin/soe-core
+npm install @andreabaldin/soe-core
 ```
 
 ```ts
-import { formatObjectPath, validateObject } from '@andrea-baldin/soe-core';
+import { formatObjectPath, validateObject } from '@andreabaldin/soe-core';
 ```
 
 See the [SOE repository](https://github.com/andrea-baldin/soe) for documentation

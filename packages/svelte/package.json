@@ -1,5 +1,5 @@
 {
-  "name": "@andrea-baldin/soe-svelte",
+  "name": "@andreabaldin/soe-svelte",
   "version": "0.1.0",
   "description": "A simple Svelte object editor",
   "keywords": [
@@ -42,7 +42,7 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
-    "@andrea-baldin/soe-core": "workspace:*"
+    "@andreabaldin/soe-core": "workspace:*"
   },
   "peerDependencies": {
     "svelte": "^5.0.0"

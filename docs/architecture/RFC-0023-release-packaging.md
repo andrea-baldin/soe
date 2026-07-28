@@ -14,8 +14,8 @@ existing family of Core projects without making the Svelte API less clear.
 ## Decision
 
 - The framework-independent package is published as
-  `@andrea-baldin/soe-core`.
-- The Svelte package is published as `@andrea-baldin/soe-svelte`.
+  `@andreabaldin/soe-core`.
+- The Svelte package is published as `@andreabaldin/soe-svelte`.
 - Both packages use the same semantic version.
 - The Svelte package declares the matching core package as a production
   dependency and Svelte 5 as a peer dependency.

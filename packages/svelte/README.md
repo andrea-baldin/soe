@@ -1,14 +1,14 @@
-# @andrea-baldin/soe-svelte
+# @andreabaldin/soe-svelte
 
 The Svelte 5 object editor from SOE.
 
 ```sh
-npm install @andrea-baldin/soe-svelte
+npm install @andreabaldin/soe-svelte
 ```
 
 ```svelte
 <script>
-  import { ObjectEditor } from '@andrea-baldin/soe-svelte';
+  import { ObjectEditor } from '@andreabaldin/soe-svelte';
 
   let value = $state({
     name: 'Ada',
