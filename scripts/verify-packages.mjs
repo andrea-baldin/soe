@@ -28,7 +28,6 @@ function run(command, arguments_, cwd = repositoryRoot) {
       ...process.env,
       npm_config_cache: join(temporaryDirectory, 'npm-cache')
     },
-    shell: process.platform === 'win32',
     stdio: 'inherit'
   });
 
@@ -36,6 +35,16 @@ function run(command, arguments_, cwd = repositoryRoot) {
     const reason = result.error?.message ?? `exit code ${result.status}`;
     throw new Error(`${command} ${arguments_.join(' ')} failed: ${reason}`);
   }
+}
+
+function runPnpm(arguments_, cwd = repositoryRoot) {
+  const pnpmEntryPoint = process.env.npm_execpath;
+
+  if (!pnpmEntryPoint) {
+    throw new Error('Run package verification through pnpm package:check');
+  }
+
+  run(process.execPath, [pnpmEntryPoint, ...arguments_], cwd);
 }
 
 function packageTarball(name) {
@@ -53,16 +62,16 @@ function packageTarball(name) {
 }
 
 try {
-  run('pnpm', ['build']);
+  runPnpm(['build']);
   mkdirSync(tarballDirectory, { recursive: true });
-  run('pnpm', [
+  runPnpm([
     '--filter',
     '@andrea-baldin/soe-core',
     'pack',
     '--pack-destination',
     tarballDirectory
   ]);
-  run('pnpm', [
+  runPnpm([
     '--filter',
     '@andrea-baldin/soe-svelte',
     'pack',
@@ -97,6 +106,12 @@ try {
       null,
       2
     )}\n`
+  );
+  writeFileSync(
+    join(consumerDirectory, 'pnpm-workspace.yaml'),
+    `overrides:
+  '@andrea-baldin/soe-core': '${pathToFileURL(coreTarball).href}'
+`
   );
   writeFileSync(
     join(consumerDirectory, 'index.html'),
@@ -135,12 +150,8 @@ export default defineConfig({ plugins: [svelte()] });
 `
   );
 
-  run(
-    'npm',
-    ['install', '--ignore-scripts', '--no-audit', '--no-fund'],
-    consumerDirectory
-  );
-  run('npm', ['run', 'build'], consumerDirectory);
+  runPnpm(['install', '--ignore-scripts'], consumerDirectory);
+  runPnpm(['run', 'build'], consumerDirectory);
 
   const svelteManifest = JSON.parse(
     readFileSync(
