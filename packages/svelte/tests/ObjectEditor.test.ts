@@ -1236,6 +1236,31 @@ describe('ObjectEditor', () => {
     );
   });
 
+  it('renders composed custom validation messages', () => {
+    const schema = composeObjectSchemas(
+      schemaForType('number', {
+        minimum: 0,
+        messages: { minimum: 'Use a positive number' }
+      }),
+      {
+        fields: {
+          discount: {
+            maximum: 30,
+            messages: { maximum: 'Discount cannot exceed 30%' }
+          }
+        }
+      }
+    );
+
+    render(ObjectEditor, {
+      value: { amount: -1, discount: 40 },
+      schema
+    });
+
+    expect(screen.getByText('Use a positive number')).toBeVisible();
+    expect(screen.getByText('Discount cannot exceed 30%')).toBeVisible();
+  });
+
   it('reports and resolves missing required properties', async () => {
     const user = userEvent.setup();
 

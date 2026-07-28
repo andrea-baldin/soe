@@ -83,7 +83,7 @@ function reportMissingFields(
         issue(
           'required',
           [...path, key],
-          'Required property is missing',
+          field.messages?.required ?? 'Required property is missing',
           field.severity ?? 'error'
         )
       );

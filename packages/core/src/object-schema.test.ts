@@ -223,6 +223,71 @@ describe('object schema', () => {
     expect(pattern.lastIndex).toBe(0);
   });
 
+  it('uses declarative validation messages with existing defaults as fallback', () => {
+    const context = { path: ['value'], root: {} };
+
+    expect(
+      validateField(
+        -1,
+        {
+          minimum: 0,
+          messages: { minimum: 'Il valore deve essere positivo' }
+        },
+        context
+      )
+    ).toBe('Il valore deve essere positivo');
+    expect(validateField(11, { maximum: 10 }, context)).toBe(
+      'Must be at most 10'
+    );
+    expect(
+      validateField(
+        'value',
+        {
+          messages: { validatorFailure: 'Validazione non disponibile' },
+          validate() {
+            throw new Error('Failure');
+          }
+        },
+        context
+      )
+    ).toBe('Validazione non disponibile');
+  });
+
+  it('composes individual validation messages from general to specific schemas', () => {
+    const composed = composeObjectSchemas(
+      schemaForType('number', {
+        messages: {
+          minimum: 'General minimum',
+          maximum: 'General maximum'
+        },
+        minimum: 0,
+        maximum: 100
+      }),
+      {
+        fields: {
+          discount: {
+            maximum: 30,
+            messages: { maximum: 'Discount cannot exceed 30%' }
+          }
+        }
+      }
+    );
+    const resolved = resolveFieldSchema(composed, { discount: 40 }, 40, [
+      'discount'
+    ]);
+
+    expect(resolved?.messages).toEqual({
+      minimum: 'General minimum',
+      maximum: 'Discount cannot exceed 30%'
+    });
+    expect(
+      validateField(40, resolved, {
+        path: ['discount'],
+        root: { discount: 40 }
+      })
+    ).toBe('Discount cannot exceed 30%');
+  });
+
   it('reports missing required own properties without reading values', () => {
     let getterCalls = 0;
     const value = Object.create({ inherited: true }) as Record<string, unknown>;

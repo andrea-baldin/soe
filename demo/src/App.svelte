@@ -27,6 +27,9 @@
     schemaForType('number', {
       type: 'number',
       minimum: 0,
+      messages: {
+        minimum: 'Numbers in this demo cannot be negative'
+      },
       validate: (value) =>
         Number(value) >= 0 ? undefined : 'Numbers cannot be negative'
     }),
@@ -37,7 +40,10 @@
           type: 'number',
           severity: 'warning',
           validate: (value) =>
-            Number(value) >= 40 ? undefined : 'Ages below 40 are highlighted'
+            Number(value) >= 40 ? undefined : 'Ages below 40 are highlighted',
+          messages: {
+            type: 'Age must be a number'
+          }
         },
         profile: {
           additionalProperties: false,
@@ -45,6 +51,10 @@
             name: {
               maximumLength: 80,
               pattern: /^[A-Za-z ]+$/,
+              messages: {
+                pattern: 'Use letters and spaces only',
+                required: 'A full name is required'
+              },
               required: true,
               type: 'string',
               validate: (value) =>

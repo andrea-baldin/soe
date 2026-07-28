@@ -91,6 +91,28 @@ describe('validateObject', () => {
     ]);
   });
 
+  it('uses a field message for missing required properties', () => {
+    expect(
+      validateObject(
+        {},
+        {
+          fields: {
+            name: {
+              required: true,
+              messages: { required: 'Inserire il nome' }
+            }
+          }
+        }
+      )
+    ).toMatchObject([
+      {
+        code: 'required',
+        message: 'Inserire il nome',
+        formattedPath: 'name'
+      }
+    ]);
+  });
+
   it('validates values discovered through type and wildcard path rules', () => {
     const value = {
       limit: -1,

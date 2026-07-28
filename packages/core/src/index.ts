@@ -58,6 +58,8 @@ export type {
   SchemaRule,
   SchemaRuleContext,
   SchemaValueType,
+  ValidationMessageKey,
+  ValidationMessages,
   ValidationSeverity
 } from './object-schema.js';
 export {
