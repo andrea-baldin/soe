@@ -126,6 +126,13 @@
 - Explicit commits through immutable updates and history
 - Standard editor fallback and Date editor demonstration
 
+## Milestone 8 — Search and navigation
+
+- Safe recursive search across editable and inspected values
+- Path and formatted-value matching without getter invocation
+- Automatic branch expansion and visible match state
+- Accessible result count and previous/next focus navigation
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom
