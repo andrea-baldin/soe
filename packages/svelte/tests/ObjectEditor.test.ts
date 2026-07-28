@@ -1043,6 +1043,67 @@ describe('ObjectEditor', () => {
     expect(boundValue()).toEqual({ minimum: 10, order: { price: 12 } });
   });
 
+  it('summarizes validation issues and navigates to existing fields', async () => {
+    const user = userEvent.setup();
+    const { container } = render(ObjectEditorHarness, {
+      initial: {
+        profile: { name: '' }
+      },
+      schema: {
+        fields: {
+          profile: {
+            fields: {
+              name: {
+                validate: (value) =>
+                  String(value) ? undefined : 'Name is required'
+              },
+              title: { required: true }
+            }
+          }
+        }
+      }
+    });
+
+    expect(screen.getByText('2 validation issues')).toBeVisible();
+    expect(
+      screen.getByRole('button', {
+        name: 'profile.name: Name is required'
+      })
+    ).toBeVisible();
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'profile.title: Required property is missing'
+      })
+    );
+
+    expect(container.querySelector('[data-soe-path="profile"]')).toHaveFocus();
+  });
+
+  it('reactively clears the validation report after correction', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditorHarness, {
+      initial: { name: '' },
+      schema: {
+        fields: {
+          name: {
+            validate: (value) =>
+              String(value) ? undefined : 'Name is required'
+          }
+        }
+      }
+    });
+
+    expect(screen.getByText('1 validation issue')).toBeVisible();
+
+    await user.type(screen.getByRole('textbox', { name: 'name' }), 'Ada');
+
+    expect(
+      screen.queryByRole('region', { name: 'Validation summary' })
+    ).not.toBeInTheDocument();
+  });
+
   it('reports and resolves missing required properties', async () => {
     const user = userEvent.setup();
 

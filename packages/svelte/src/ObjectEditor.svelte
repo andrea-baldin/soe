@@ -11,6 +11,7 @@
     replaceValueAtPath,
     schemaCapabilityProvider,
     searchObject,
+    validateObject,
     ValueHistory,
     type ObjectSchema,
     type ObjectPath,
@@ -47,6 +48,10 @@
   const keys = $derived(entries.map((entry) => String(entry.key)));
   const missingRequired = $derived(
     missingRequiredFields(value, schema?.fields)
+  );
+  const validationIssues = $derived(validateObject(value, schema));
+  const validationPaths = $derived(
+    validationIssues.map((issue) => issue.formattedPath)
   );
   const pluginHost = $derived(
     createPluginHost<ObjectEditorNodeProperties>({
@@ -154,6 +159,29 @@
     });
   }
 
+  function focusValidationPath(path: ObjectPath): void {
+    const target = [...path];
+
+    queueMicrotask(() => {
+      if (!editorElement) return;
+
+      while (target.length) {
+        const formatted = formatObjectPath(target);
+        const match = [
+          ...editorElement.querySelectorAll<HTMLElement>('[data-soe-path]')
+        ].find((element) => element.dataset.soePath === formatted);
+        if (match) {
+          match.focus();
+          match.scrollIntoView?.({ block: 'nearest' });
+          return;
+        }
+        target.pop();
+      }
+
+      editorElement.focus();
+    });
+  }
+
   $effect(() => {
     if (value !== synchronizedValue) {
       history.reset(value);
@@ -175,6 +203,7 @@
   data-soe-editor
   role="group"
   aria-label="Object editor"
+  tabindex="-1"
   onkeydown={handleKeydown}
   bind:this={editorElement}
 >
@@ -225,6 +254,32 @@
       onclick={() => moveSearchResult(1)}>↓</button
     >
   </div>
+  {#if validationIssues.length}
+    <section
+      class="validation-summary"
+      aria-label="Validation summary"
+      data-soe-validation-summary
+    >
+      <p>
+        {validationIssues.length}
+        {validationIssues.length === 1
+          ? 'validation issue'
+          : 'validation issues'}
+      </p>
+      <ul>
+        {#each validationIssues as issue (issue.formattedPath)}
+          <li>
+            <button
+              type="button"
+              onclick={() => focusValidationPath(issue.path)}
+            >
+              <span>{issue.formattedPath}</span>: {issue.message}
+            </button>
+          </li>
+        {/each}
+      </ul>
+    </section>
+  {/if}
   {#if missingRequired.length}
     <p class="schema-error" role="alert" data-soe-required>
       Required properties missing: {missingRequired.join(', ')}
@@ -248,6 +303,7 @@
         {matchPaths}
         {activeMatchPath}
         searchActive={Boolean(searchQuery)}
+        {validationPaths}
         onupdate={update}
         onoperation={operate}
       />
@@ -367,5 +423,31 @@
     color: var(--soe-error, #b42318);
     font-size: 0.8rem;
     border-bottom: 1px solid var(--soe-border, #d9dee7);
+  }
+
+  .validation-summary {
+    padding: 0.5rem 0.85rem;
+    color: var(--soe-error, #b42318);
+    font-size: 0.8rem;
+    border-bottom: 1px solid var(--soe-border, #d9dee7);
+  }
+
+  .validation-summary p,
+  .validation-summary ul {
+    margin: 0;
+  }
+
+  .validation-summary ul {
+    padding: 0.25rem 0 0 1rem;
+  }
+
+  .validation-summary button {
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
   }
 </style>

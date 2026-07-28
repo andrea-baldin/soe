@@ -47,6 +47,7 @@
     matchPaths,
     activeMatchPath,
     searchActive,
+    validationPaths,
     onupdate,
     onoperation
   }: {
@@ -67,6 +68,7 @@
     matchPaths: readonly string[];
     activeMatchPath?: string;
     searchActive: boolean;
+    validationPaths: readonly string[];
     onupdate: UpdateHandler;
     onoperation: OperationHandler;
   } = $props();
@@ -96,6 +98,15 @@
         match === nodePath ||
         match.startsWith(`${nodePath}.`) ||
         match.startsWith(`${nodePath}[`)
+    )
+  );
+  const hasValidationIssue = $derived(validationPaths.includes(nodePath));
+  const containsValidationIssue = $derived(
+    validationPaths.some(
+      (issuePath) =>
+        issuePath === nodePath ||
+        issuePath.startsWith(`${nodePath}.`) ||
+        issuePath.startsWith(`${nodePath}[`)
     )
   );
   const fieldId = $derived(`${editorId}-field-${encodeURIComponent(nodePath)}`);
@@ -155,6 +166,9 @@
 
   $effect(() => {
     if (searchActive && containsMatch && container && !circular) {
+      expanded = true;
+    }
+    if (containsValidationIssue && container && !circular) {
       expanded = true;
     }
   });
@@ -251,6 +265,7 @@
   data-soe-valid={!nodeValidationMessage}
   data-soe-match={matched || undefined}
   data-soe-active-match={activeMatch || undefined}
+  data-soe-validation-issue={hasValidationIssue || undefined}
   tabindex="-1"
 >
   {#if container && !circular}
@@ -306,6 +321,7 @@
             {matchPaths}
             {activeMatchPath}
             {searchActive}
+            {validationPaths}
             {onupdate}
             {onoperation}
           />
@@ -480,6 +496,10 @@
   .object-node[data-soe-active-match='true'] > .object-field {
     outline: 2px solid var(--soe-focus, #155eef);
     outline-offset: -2px;
+  }
+
+  .object-node[data-soe-validation-issue='true'] > .object-field {
+    box-shadow: inset 0.2rem 0 var(--soe-error, #b42318);
   }
 
   .object-field {
