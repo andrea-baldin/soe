@@ -7,7 +7,7 @@ providing clarity, structure, and guidance without getting in the way.
 
 ```svelte
 <script lang="ts">
-  import { ObjectEditor } from '@soe/svelte';
+  import { ObjectEditor } from '@andrea-baldin/soe-svelte';
 
   let value = $state({
     name: 'Ada',
@@ -33,7 +33,7 @@ the project documents that guide future work.
 
 ```svelte
 <script lang="ts">
-  import type { ObjectSchema } from '@soe/core';
+  import type { ObjectSchema } from '@andrea-baldin/soe-core';
 
   const schema: ObjectSchema = {
     fields: {
@@ -48,6 +48,19 @@ the project documents that guide future work.
 </script>
 
 <ObjectEditor bind:value {schema} />
+```
+
+## Installation
+
+```sh
+npm install @andrea-baldin/soe-svelte
+```
+
+The Svelte package installs `@andrea-baldin/soe-core` automatically. Install
+the core package directly only for framework-independent integrations:
+
+```sh
+npm install @andrea-baldin/soe-core
 ```
 
 ## Development
@@ -121,6 +134,14 @@ Declarative operation constraints are defined by
 [Schema-driven Policies](docs/architecture/RFC-0021-schema-policies.md).
 Whole-object issue discovery is defined by the
 [Validation Report](docs/architecture/RFC-0022-validation-report.md).
+Public package identity and release verification are defined by
+[Release Packaging](docs/architecture/RFC-0023-release-packaging.md).
+
+## Releases
+
+SOE follows semantic versioning. Published changes are recorded in
+[CHANGELOG.md](CHANGELOG.md), and the maintainer procedure is documented in
+[docs/releasing.md](docs/releasing.md).
 
 ## License
 

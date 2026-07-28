@@ -147,6 +147,13 @@
 - Accessible summary and direct issue navigation
 - Automatic expansion and visual state for invalid branches
 
+## Milestone 11 — Release candidate
+
+- Public `@andrea-baldin/soe-core` and `@andrea-baldin/soe-svelte` package identity
+- Complete npm metadata, export maps, license, and package documentation
+- Isolated tarball installation and Svelte consumer build
+- Release notes, maintainer procedure, and CI package verification
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom
