@@ -1,0 +1,14 @@
+# Text files use one repository representation on every operating system.
+* text=auto eol=lf
+
+# Windows command scripts require CRLF when introduced in the future.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets must never be normalized.
+*.gif binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.webp binary
