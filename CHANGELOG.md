@@ -7,6 +7,12 @@ and the project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Trusted npm publishing through GitHub Actions and OpenID Connect.
+- Release contract validation for package names, versions, tags, dependencies,
+  and changelog entries.
+
 ## [0.1.0] - 2026-07-28
 
 ### Added
