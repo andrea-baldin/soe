@@ -1,6 +1,11 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  composeObjectSchemas,
+  schemaForPath,
+  schemaForType
+} from '@andreabaldin/soe-core';
 
 import ObjectEditor from '../src/ObjectEditor.svelte';
 import type { ObjectEditorPlugin } from '../src/object-editor-plugin.js';
@@ -904,6 +909,36 @@ describe('ObjectEditor', () => {
       code: 'A-42'
     });
     expect(screen.queryAllByRole('alert')).toHaveLength(0);
+  });
+
+  it('applies composed type rules and path overrides recursively', () => {
+    const schema = composeObjectSchemas(
+      schemaForType('number', {
+        readonly: true,
+        validate: (value) =>
+          Number(value) >= 0 ? undefined : 'Number must be positive'
+      }),
+      schemaForPath(['metrics', '*'], { readonly: false })
+    );
+
+    render(ObjectEditor, {
+      value: {
+        locked: 10,
+        metrics: {
+          current: 5,
+          previous: -1
+        }
+      },
+      schema
+    });
+
+    expect(
+      screen.queryByRole('spinbutton', { name: 'locked' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('spinbutton', { name: 'metrics.current' })
+    ).toHaveValue(5);
+    expect(screen.getByText('Number must be positive')).toBeVisible();
   });
 
   it('enforces recursive readonly schema policies', () => {
