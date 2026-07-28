@@ -12,10 +12,12 @@
     missingRequiredFields,
     objectEntries,
     objectValueKind,
+    resolveFieldSchema,
     validateField,
     type EditableValue,
     type FieldSchema,
     type ObjectPath,
+    type ObjectSchema,
     type PluginHost,
     type StructuralOperation
   } from '@andreabaldin/soe-core';
@@ -42,6 +44,7 @@
     parentValue,
     parentSchema,
     fieldSchema,
+    objectSchema,
     pluginHost,
     inspectOnly = false,
     matchPaths,
@@ -63,6 +66,7 @@
     parentValue: unknown;
     parentSchema?: FieldSchema;
     fieldSchema?: FieldSchema;
+    objectSchema?: ObjectSchema;
     pluginHost: PluginHost<ObjectEditorNodeProperties>;
     inspectOnly?: boolean;
     matchPaths: readonly string[];
@@ -247,7 +251,20 @@
     onoperation({ type: 'array.append', path });
   }
 
-  function childSchema(key: string | number): FieldSchema | undefined {
+  function childSchema(
+    key: string | number,
+    childValue: unknown
+  ): FieldSchema | undefined {
+    if (objectSchema) {
+      return resolveFieldSchema(
+        objectSchema,
+        root,
+        childValue,
+        [...path, key],
+        fieldSchema
+      );
+    }
+
     const schema =
       typeof key === 'number' ? fieldSchema?.items : fieldSchema?.fields?.[key];
     return inheritFieldSchema(schema, fieldSchema);
@@ -315,7 +332,8 @@
             {root}
             parentValue={value}
             parentSchema={fieldSchema}
-            fieldSchema={childSchema(entry.key)}
+            fieldSchema={childSchema(entry.key, entry.value)}
+            {objectSchema}
             {pluginHost}
             inspectOnly={inspectOnly || !editableContainer}
             {matchPaths}

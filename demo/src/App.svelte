@@ -1,7 +1,12 @@
 <script lang="ts">
   import { ObjectEditor } from '@andreabaldin/soe-svelte';
   import type { ObjectEditorPlugin } from '@andreabaldin/soe-svelte';
-  import type { ObjectSchema } from '@andreabaldin/soe-core';
+  import {
+    composeObjectSchemas,
+    schemaForPath,
+    schemaForType,
+    type ObjectSchema
+  } from '@andreabaldin/soe-core';
   import DateEditor from './DateEditor.svelte';
 
   let value = $state<Record<string, unknown>>({
@@ -17,32 +22,37 @@
     references: new Map([['engine', { name: 'Analytical Engine', year: 1837 }]])
   });
 
-  const schema: ObjectSchema = {
-    fields: {
-      age: {
-        type: 'number',
-        validate: (value) =>
-          Number(value) >= 0 ? undefined : 'Age cannot be negative'
-      },
-      profile: {
-        additionalProperties: false,
-        fields: {
-          name: {
-            required: true,
-            readonly: true,
-            type: 'string',
-            validate: (value) =>
-              String(value).trim() ? undefined : 'Name is required'
+  const schema: ObjectSchema = composeObjectSchemas(
+    schemaForType('number', {
+      type: 'number',
+      validate: (value) =>
+        Number(value) >= 0 ? undefined : 'Numbers cannot be negative'
+    }),
+    schemaForPath(['profile', 'name'], { readonly: true }),
+    {
+      fields: {
+        age: {
+          type: 'number'
+        },
+        profile: {
+          additionalProperties: false,
+          fields: {
+            name: {
+              required: true,
+              type: 'string',
+              validate: (value) =>
+                String(value).trim() ? undefined : 'Name is required'
+            }
           }
+        },
+        skills: {
+          maximumItems: 5,
+          minimumItems: 1,
+          items: { type: 'string' }
         }
-      },
-      skills: {
-        maximumItems: 5,
-        minimumItems: 1,
-        items: { type: 'string' }
       }
     }
-  };
+  );
 
   const plugins: readonly ObjectEditorPlugin[] = [
     {

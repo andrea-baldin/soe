@@ -9,6 +9,7 @@
     missingRequiredFields,
     objectEntries,
     replaceValueAtPath,
+    resolveFieldSchema,
     schemaCapabilityProvider,
     searchObject,
     validateObject,
@@ -46,8 +47,9 @@
   let editorElement: HTMLDivElement;
   const entries = $derived(objectEntries(value));
   const keys = $derived(entries.map((entry) => String(entry.key)));
+  const rootSchema = $derived(resolveFieldSchema(schema, value, value, []));
   const missingRequired = $derived(
-    missingRequiredFields(value, schema?.fields)
+    missingRequiredFields(value, rootSchema?.fields)
   );
   const validationIssues = $derived(validateObject(value, schema));
   const validationPaths = $derived(
@@ -71,7 +73,8 @@
       root: value,
       value,
       parent: undefined,
-      path: []
+      path: [],
+      schema: rootSchema
     }).context.capabilities
   );
   const canUndo = $derived.by(() => {
@@ -138,6 +141,10 @@
 
   function entryLabel(key: string | number): string {
     return typeof key === 'number' ? `[${key}]` : key;
+  }
+
+  function entrySchema(key: string | number, entryValue: unknown) {
+    return resolveFieldSchema(schema, value, entryValue, [key], rootSchema);
   }
 
   function moveSearchResult(offset: number): void {
@@ -298,7 +305,9 @@
         siblingKeys={keys}
         root={value}
         parentValue={value}
-        fieldSchema={schema?.fields[String(entry.key)]}
+        parentSchema={rootSchema}
+        fieldSchema={entrySchema(entry.key, entry.value)}
+        objectSchema={schema}
         {pluginHost}
         {matchPaths}
         {activeMatchPath}
