@@ -33,9 +33,11 @@ export type { StructuralOperation } from './structural-operation.js';
 export { ValueHistory } from './value-history.js';
 export {
   fieldSchemaAtPath,
+  inheritFieldSchema,
   missingRequiredFields,
   validateField
 } from './object-schema.js';
+export { schemaCapabilityProvider } from './schema-capability-provider.js';
 export type {
   FieldSchema,
   FieldValidationContext,

@@ -15,6 +15,7 @@ export interface NodeContext<T = unknown> {
   readonly root: unknown;
   readonly value: T;
   readonly parent: unknown;
+  readonly parentSchema?: FieldSchema;
   readonly path: ObjectPath;
   readonly schema?: FieldSchema;
 }

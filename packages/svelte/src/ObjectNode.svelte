@@ -6,6 +6,7 @@
     formatObjectPath,
     formatObjectValue,
     inspectionEntries,
+    inheritFieldSchema,
     isEditableContainer,
     isInspectableContainer,
     missingRequiredFields,
@@ -39,6 +40,7 @@
     siblingKeys,
     root,
     parentValue,
+    parentSchema,
     fieldSchema,
     pluginHost,
     inspectOnly = false,
@@ -58,6 +60,7 @@
     siblingKeys: readonly string[];
     root: unknown;
     parentValue: unknown;
+    parentSchema?: FieldSchema;
     fieldSchema?: FieldSchema;
     pluginHost: PluginHost<ObjectEditorNodeProperties>;
     inspectOnly?: boolean;
@@ -122,6 +125,7 @@
       root,
       value,
       parent: parentValue,
+      parentSchema,
       path,
       schema: fieldSchema
     })
@@ -230,9 +234,9 @@
   }
 
   function childSchema(key: string | number): FieldSchema | undefined {
-    return typeof key === 'number'
-      ? fieldSchema?.items
-      : fieldSchema?.fields?.[key];
+    const schema =
+      typeof key === 'number' ? fieldSchema?.items : fieldSchema?.fields?.[key];
+    return inheritFieldSchema(schema, fieldSchema);
   }
 </script>
 
@@ -295,6 +299,7 @@
             siblingKeys={childKeys}
             {root}
             parentValue={value}
+            parentSchema={fieldSchema}
             fieldSchema={childSchema(entry.key)}
             {pluginHost}
             inspectOnly={inspectOnly || !editableContainer}
