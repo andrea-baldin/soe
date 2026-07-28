@@ -28,6 +28,7 @@ export interface FieldSchema {
   readonly required?: boolean;
   readonly fields?: Readonly<Record<string, FieldSchema>>;
   readonly items?: FieldSchema;
+  readonly prefixItems?: readonly FieldSchema[];
   readonly validate?: FieldValidator;
 }
 
@@ -136,7 +137,8 @@ export function mergeFieldSchemas(
     ...base,
     ...override,
     fields: mergeFields(base.fields, override.fields),
-    items: mergeFieldSchemas(base.items, override.items)
+    items: mergeFieldSchemas(base.items, override.items),
+    prefixItems: mergePrefixItems(base.prefixItems, override.prefixItems)
   });
 }
 
@@ -163,7 +165,7 @@ export function fieldSchemaAtPath(
 
   for (const segment of path) {
     if (typeof segment === 'number') {
-      field = field?.items;
+      field = mergeFieldSchemas(field?.items, field?.prefixItems?.[segment]);
     } else {
       field = field ? field.fields?.[segment] : schema?.fields[segment];
     }
@@ -246,7 +248,10 @@ function stableFieldSchema(schema: FieldSchema): FieldSchema {
   return Object.freeze({
     ...schema,
     fields: schema.fields ? mergeFields(undefined, schema.fields) : undefined,
-    items: schema.items ? stableFieldSchema(schema.items) : undefined
+    items: schema.items ? stableFieldSchema(schema.items) : undefined,
+    prefixItems: schema.prefixItems
+      ? Object.freeze(schema.prefixItems.map(stableFieldSchema))
+      : undefined
   });
 }
 
@@ -256,4 +261,18 @@ function stableRule(rule: SchemaRule): SchemaRule {
     path: rule.path ? Object.freeze([...rule.path]) : undefined,
     schema: stableFieldSchema(rule.schema)
   });
+}
+
+function mergePrefixItems(
+  base: readonly FieldSchema[] | undefined,
+  override: readonly FieldSchema[] | undefined
+): readonly FieldSchema[] | undefined {
+  if (!base && !override) return undefined;
+
+  const length = Math.max(base?.length ?? 0, override?.length ?? 0);
+  return Object.freeze(
+    Array.from({ length }, (_, index) =>
+      mergeFieldSchemas(base?.[index], override?.[index])
+    ).map((schema) => schema ?? Object.freeze({}))
+  );
 }

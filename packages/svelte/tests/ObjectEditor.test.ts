@@ -941,6 +941,34 @@ describe('ObjectEditor', () => {
     expect(screen.getByText('Number must be positive')).toBeVisible();
   });
 
+  it('renders tuple positions from positional schemas', () => {
+    render(ObjectEditor, {
+      value: {
+        row: [42, 'Ada', true]
+      },
+      schema: {
+        fields: {
+          row: {
+            items: { readonly: true },
+            prefixItems: [
+              { type: 'number', readonly: false },
+              { type: 'string', readonly: false }
+            ]
+          }
+        }
+      }
+    });
+
+    expect(screen.getByRole('spinbutton', { name: 'row[0]' })).toHaveValue(42);
+    expect(screen.getByRole('textbox', { name: 'row[1]' })).toHaveValue('Ada');
+    expect(
+      screen.queryByRole('checkbox', { name: 'row[2]' })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('status', { name: 'row[2]' })).toHaveTextContent(
+      'true'
+    );
+  });
+
   it('enforces recursive readonly schema policies', () => {
     render(ObjectEditor, {
       value: {

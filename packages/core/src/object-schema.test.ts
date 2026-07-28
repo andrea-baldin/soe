@@ -34,6 +34,58 @@ describe('object schema', () => {
     expect(fieldSchemaAtPath(schema, ['missing'])).toBeUndefined();
   });
 
+  it('applies positional tuple knowledge over general array items', () => {
+    const tupleSchema: ObjectSchema = {
+      fields: {
+        coordinates: {
+          items: { readonly: true },
+          prefixItems: [{ type: 'number' }, { type: 'string', readonly: false }]
+        }
+      }
+    };
+
+    expect(fieldSchemaAtPath(tupleSchema, ['coordinates', 0])).toMatchObject({
+      type: 'number',
+      readonly: true
+    });
+    expect(fieldSchemaAtPath(tupleSchema, ['coordinates', 1])).toMatchObject({
+      type: 'string',
+      readonly: false
+    });
+    expect(fieldSchemaAtPath(tupleSchema, ['coordinates', 2])).toMatchObject({
+      readonly: true
+    });
+  });
+
+  it('composes positional tuple schemas by index without mutating inputs', () => {
+    const base = {
+      fields: {
+        row: {
+          prefixItems: [{ type: 'string' as const }, { required: true }]
+        }
+      }
+    };
+    const override = {
+      fields: {
+        row: {
+          prefixItems: [{ readonly: true }, { type: 'number' as const }]
+        }
+      }
+    };
+    const composed = composeObjectSchemas(base, override);
+
+    expect(fieldSchemaAtPath(composed, ['row', 0])).toMatchObject({
+      type: 'string',
+      readonly: true
+    });
+    expect(fieldSchemaAtPath(composed, ['row', 1])).toMatchObject({
+      type: 'number',
+      required: true
+    });
+    expect(Object.isFrozen(composed.fields.row?.prefixItems)).toBe(true);
+    expect(base.fields.row.prefixItems[0]).toEqual({ type: 'string' });
+  });
+
   it('composes type, predicate, and path knowledge in precedence order', () => {
     const root = { orders: [{ discount: 15 }] };
     const composed = composeObjectSchemas(

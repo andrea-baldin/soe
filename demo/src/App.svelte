@@ -17,6 +17,7 @@
       nickname: null,
       birthday: new Date('1815-12-10')
     },
+    record: [1843, 'Notes on the Analytical Engine', true],
     skills: ['mathematics', 'computing'],
     tags: new Set(['pioneer', 'programmer']),
     references: new Map([['engine', { name: 'Analytical Engine', year: 1837 }]])
@@ -49,6 +50,14 @@
           maximumItems: 5,
           minimumItems: 1,
           items: { type: 'string' }
+        },
+        record: {
+          items: { readonly: true },
+          prefixItems: [
+            { type: 'number' },
+            { type: 'string', readonly: false },
+            { type: 'boolean' }
+          ]
         }
       }
     }
