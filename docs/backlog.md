@@ -3,8 +3,8 @@
 The backlog records ideas without committing them to the public API.
 
 - Object paths and stable node identities
-- Schema-driven structural constraints
-- Permission and schema capability providers
+- Role-based and asynchronous permission providers
+- Conditional and tuple schema policies
 - Concrete property catalogs and providers
 - Additional renderer properties backed by concrete use cases
 - Primitive paste and container merge strategies

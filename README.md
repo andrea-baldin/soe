@@ -117,6 +117,8 @@ Plugin-selected domain controls are defined by
 [Custom Value Editors](docs/architecture/RFC-0019-custom-value-editors.md).
 Safe graph discovery and result focus are defined by
 [Search and Navigation](docs/architecture/RFC-0020-search-navigation.md).
+Declarative operation constraints are defined by
+[Schema-driven Policies](docs/architecture/RFC-0021-schema-policies.md).
 
 ## License
 

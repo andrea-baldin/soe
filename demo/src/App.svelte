@@ -25,9 +25,11 @@
           Number(value) >= 0 ? undefined : 'Age cannot be negative'
       },
       profile: {
+        additionalProperties: false,
         fields: {
           name: {
             required: true,
+            readonly: true,
             type: 'string',
             validate: (value) =>
               String(value).trim() ? undefined : 'Name is required'
@@ -35,6 +37,8 @@
         }
       },
       skills: {
+        maximumItems: 5,
+        minimumItems: 1,
         items: { type: 'string' }
       }
     }

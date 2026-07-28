@@ -133,6 +133,13 @@
 - Automatic branch expansion and visible match state
 - Accessible result count and previous/next focus navigation
 
+## Milestone 9 — Schema-driven policies
+
+- Read-only, rename, delete, and additional-property knowledge
+- Minimum and maximum array size constraints
+- Framework-independent schema capability provider
+- Recursive policy inheritance with application-plugin precedence
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom
