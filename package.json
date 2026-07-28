@@ -15,6 +15,7 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "package:check": "node scripts/verify-packages.mjs",
+    "release:check": "node scripts/validate-release.mjs",
     "test": "vitest run",
     "typecheck": "pnpm --filter @andreabaldin/soe-core typecheck && pnpm --filter @andreabaldin/soe-svelte typecheck && pnpm --filter @soe/demo typecheck"
   },
