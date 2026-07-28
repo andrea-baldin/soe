@@ -3,6 +3,7 @@
  */
 
 import type { ObjectPath } from './object-path.js';
+import { objectValueKind, type ObjectValueKind } from './object-value.js';
 
 export type SchemaValueType = 'boolean' | 'number' | 'string';
 
@@ -41,6 +42,102 @@ export function inheritFieldSchema(
 
 export interface ObjectSchema {
   readonly fields: Readonly<Record<string, FieldSchema>>;
+  readonly rules?: readonly SchemaRule[];
+}
+
+export type SchemaPathPattern = readonly (ObjectPath[number] | '*')[];
+
+export interface SchemaRuleContext {
+  readonly path: ObjectPath;
+  readonly root: unknown;
+  readonly value: unknown;
+}
+
+export interface SchemaRule {
+  readonly kind?: ObjectValueKind;
+  readonly path?: SchemaPathPattern;
+  readonly when?: (context: SchemaRuleContext) => boolean;
+  readonly schema: FieldSchema;
+}
+
+export function schemaForType(
+  kind: ObjectValueKind,
+  schema: FieldSchema
+): ObjectSchema {
+  return { fields: {}, rules: [{ kind, schema }] };
+}
+
+export function schemaForPath(
+  path: SchemaPathPattern,
+  schema: FieldSchema
+): ObjectSchema {
+  return { fields: {}, rules: [{ path: [...path], schema }] };
+}
+
+export function schemaWhen(
+  when: (context: SchemaRuleContext) => boolean,
+  schema: FieldSchema
+): ObjectSchema {
+  return { fields: {}, rules: [{ when, schema }] };
+}
+
+export function composeObjectSchemas(
+  ...schemas: readonly (ObjectSchema | undefined)[]
+): ObjectSchema {
+  return Object.freeze({
+    fields: schemas.reduce<Readonly<Record<string, FieldSchema>>>(
+      (fields, schema) => mergeFields(fields, schema?.fields),
+      {}
+    ),
+    rules: Object.freeze(
+      schemas.flatMap((schema) => schema?.rules ?? []).map(stableRule)
+    )
+  });
+}
+
+export function resolveFieldSchema(
+  schema: ObjectSchema | undefined,
+  root: unknown,
+  value: unknown,
+  path: ObjectPath,
+  parent?: FieldSchema
+): FieldSchema | undefined {
+  if (!schema) return undefined;
+
+  const context: SchemaRuleContext = Object.freeze({
+    root,
+    value,
+    path: Object.freeze([...path])
+  });
+  let resolved: FieldSchema | undefined;
+
+  for (const rule of schema.rules ?? []) {
+    if (matchesRule(rule, context)) {
+      resolved = mergeFieldSchemas(resolved, rule.schema);
+    }
+  }
+
+  const explicit =
+    path.length === 0
+      ? ({ fields: schema.fields } satisfies FieldSchema)
+      : fieldSchemaAtPath(schema, path);
+  resolved = mergeFieldSchemas(resolved, explicit);
+  return inheritFieldSchema(resolved, parent);
+}
+
+export function mergeFieldSchemas(
+  base: FieldSchema | undefined,
+  override: FieldSchema | undefined
+): FieldSchema | undefined {
+  if (!base) return override ? stableFieldSchema(override) : undefined;
+  if (!override) return stableFieldSchema(base);
+
+  return Object.freeze({
+    ...base,
+    ...override,
+    fields: mergeFields(base.fields, override.fields),
+    items: mergeFieldSchemas(base.items, override.items)
+  });
 }
 
 export function missingRequiredFields(
@@ -104,4 +201,59 @@ function matchesType(value: unknown, type: SchemaValueType): boolean {
   }
 
   return typeof value === type;
+}
+
+function matchesRule(rule: SchemaRule, context: SchemaRuleContext): boolean {
+  if (rule.kind && objectValueKind(context.value) !== rule.kind) return false;
+  if (rule.path && !matchesPath(context.path, rule.path)) return false;
+  if (!rule.when) return true;
+
+  try {
+    return rule.when(context) === true;
+  } catch {
+    return false;
+  }
+}
+
+function matchesPath(path: ObjectPath, pattern: SchemaPathPattern): boolean {
+  return (
+    path.length === pattern.length &&
+    pattern.every(
+      (segment, index) => segment === '*' || segment === path[index]
+    )
+  );
+}
+
+function mergeFields(
+  base: Readonly<Record<string, FieldSchema>> | undefined,
+  override: Readonly<Record<string, FieldSchema>> | undefined
+): Readonly<Record<string, FieldSchema>> {
+  const keys = new Set([
+    ...Object.keys(base ?? {}),
+    ...Object.keys(override ?? {})
+  ]);
+  return Object.freeze(
+    Object.fromEntries(
+      [...keys].map((key) => [
+        key,
+        mergeFieldSchemas(base?.[key], override?.[key]) ?? {}
+      ])
+    )
+  );
+}
+
+function stableFieldSchema(schema: FieldSchema): FieldSchema {
+  return Object.freeze({
+    ...schema,
+    fields: schema.fields ? mergeFields(undefined, schema.fields) : undefined,
+    items: schema.items ? stableFieldSchema(schema.items) : undefined
+  });
+}
+
+function stableRule(rule: SchemaRule): SchemaRule {
+  return Object.freeze({
+    ...rule,
+    path: rule.path ? Object.freeze([...rule.path]) : undefined,
+    schema: stableFieldSchema(rule.schema)
+  });
 }

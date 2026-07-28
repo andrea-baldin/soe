@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { validateObject } from './object-validation.js';
+import {
+  composeObjectSchemas,
+  schemaForPath,
+  schemaForType
+} from './object-schema.js';
 
 describe('validateObject', () => {
   it('collects nested field and array item issues', () => {
@@ -51,6 +56,34 @@ describe('validateObject', () => {
         code: 'required',
         formattedPath: 'profile.name',
         message: 'Required property is missing'
+      }
+    ]);
+  });
+
+  it('validates values discovered through type and wildcard path rules', () => {
+    const value = {
+      limit: -1,
+      orders: [{ discount: 25 }, { discount: 10 }]
+    };
+    const schema = composeObjectSchemas(
+      schemaForType('number', {
+        validate: (value) =>
+          Number(value) >= 0 ? undefined : 'Number must be positive'
+      }),
+      schemaForPath(['orders', '*', 'discount'], {
+        validate: (value) =>
+          Number(value) <= 20 ? undefined : 'Discount is too large'
+      })
+    );
+
+    expect(validateObject(value, schema)).toMatchObject([
+      {
+        formattedPath: 'limit',
+        message: 'Number must be positive'
+      },
+      {
+        formattedPath: 'orders[0].discount',
+        message: 'Discount is too large'
       }
     ]);
   });

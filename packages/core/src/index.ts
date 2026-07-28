@@ -37,9 +37,15 @@ export { applyStructuralOperation } from './structural-operation.js';
 export type { StructuralOperation } from './structural-operation.js';
 export { ValueHistory } from './value-history.js';
 export {
+  composeObjectSchemas,
   fieldSchemaAtPath,
   inheritFieldSchema,
+  mergeFieldSchemas,
   missingRequiredFields,
+  resolveFieldSchema,
+  schemaForPath,
+  schemaForType,
+  schemaWhen,
   validateField
 } from './object-schema.js';
 export { schemaCapabilityProvider } from './schema-capability-provider.js';
@@ -48,6 +54,9 @@ export type {
   FieldValidationContext,
   FieldValidator,
   ObjectSchema,
+  SchemaPathPattern,
+  SchemaRule,
+  SchemaRuleContext,
   SchemaValueType
 } from './object-schema.js';
 export {
