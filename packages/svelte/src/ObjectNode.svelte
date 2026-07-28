@@ -18,7 +18,7 @@
     type ObjectPath,
     type PluginHost,
     type StructuralOperation
-  } from '@soe/core';
+  } from '@andrea-baldin/soe-core';
 
   import AddProperty from './AddProperty.svelte';
   import NodeActions from './NodeActions.svelte';

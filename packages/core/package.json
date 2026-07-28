@@ -1,9 +1,24 @@
 {
-  "name": "@soe/core",
+  "name": "@andrea-baldin/soe-core",
   "version": "0.1.0",
-  "private": true,
   "description": "Framework-independent foundations for SOE",
+  "keywords": [
+    "object-editor",
+    "schema",
+    "validation",
+    "typescript"
+  ],
+  "homepage": "https://github.com/andrea-baldin/soe#readme",
+  "bugs": "https://github.com/andrea-baldin/soe/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrea-baldin/soe.git",
+    "directory": "packages/core"
+  },
+  "license": "Apache-2.0",
+  "author": "Andrea Baldin <andreabaldin@hotmail.com>",
   "type": "module",
+  "types": "./dist/index.d.ts",
   "sideEffects": false,
   "files": [
     "dist"
@@ -13,6 +28,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

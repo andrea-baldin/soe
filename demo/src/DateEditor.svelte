@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ObjectEditorValueEditorProps } from '@soe/svelte';
+  import type { ObjectEditorValueEditorProps } from '@andrea-baldin/soe-svelte';
 
   let { context, commit }: ObjectEditorValueEditorProps = $props();
 

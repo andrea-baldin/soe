@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [svelte()],
   resolve: {
     alias: {
-      '@soe/core': fileURLToPath(
+      '@andrea-baldin/soe-core': fileURLToPath(
         new URL('./packages/core/src/index.ts', import.meta.url)
       )
     },
