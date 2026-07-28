@@ -8,9 +8,9 @@ The backlog records ideas without committing them to the public API.
 - Concrete property catalogs and providers
 - Additional renderer properties backed by concrete use cases
 - Primitive paste and container merge strategies
-- Search and filtering
+- Filtering, fuzzy search, and replace
 - Alternate renderers
-- Custom value editors
+- Named editor registries and asynchronous editor loading
 - Localization and theming
 - Inherited properties, weak collections, and opt-in getter evaluation
 

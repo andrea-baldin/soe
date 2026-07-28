@@ -5,5 +5,7 @@
 export { default as ObjectEditor } from './ObjectEditor.svelte';
 export type {
   ObjectEditorNodeProperties,
-  ObjectEditorPlugin
+  ObjectEditorPlugin,
+  ObjectEditorValueEditor,
+  ObjectEditorValueEditorProps
 } from './object-editor-plugin.js';

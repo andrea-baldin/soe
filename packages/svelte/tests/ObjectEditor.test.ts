@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import ObjectEditor from '../src/ObjectEditor.svelte';
 import type { ObjectEditorPlugin } from '../src/object-editor-plugin.js';
 import ObjectEditorHarness from './ObjectEditorHarness.svelte';
+import UppercaseEditor from './UppercaseEditor.svelte';
 
 afterEach(cleanup);
 
@@ -134,7 +135,7 @@ describe('ObjectEditor', () => {
     expect(writeText).toHaveBeenCalledWith(
       '{\n  "active": true,\n  "name": "Ada"\n}'
     );
-    expect(screen.getByRole('status')).toHaveTextContent('Copied');
+    expect(screen.getByText('Copied')).toBeVisible();
   });
 
   it('isolates clipboard failures', async () => {
@@ -152,7 +153,7 @@ describe('ObjectEditor', () => {
 
     await user.click(screen.getByRole('button', { name: 'Copy name' }));
 
-    expect(screen.getByRole('status')).toHaveTextContent('Copy failed');
+    expect(screen.getByText('Copy failed')).toBeVisible();
     expect(screen.getByRole('textbox', { name: 'name' })).toHaveValue('Ada');
   });
 
@@ -247,6 +248,57 @@ describe('ObjectEditor', () => {
     expect(
       screen.getByRole('textbox', { name: 'name' })
     ).toHaveAccessibleDescription('Resolved from First label');
+  });
+
+  it('renders a plugin-selected custom editor and records its commits', async () => {
+    const user = userEvent.setup();
+    const plugins: ObjectEditorPlugin[] = [
+      {
+        properties: {
+          provide: (context) =>
+            context.path.join('.') === 'name'
+              ? { editor: UppercaseEditor }
+              : undefined
+        }
+      }
+    ];
+
+    render(ObjectEditorHarness, {
+      initial: { name: 'Ada' },
+      plugins
+    });
+
+    expect(
+      screen.queryByRole('textbox', { name: 'name' })
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Uppercase name' }));
+    expect(boundValue()).toEqual({ name: 'ADA' });
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(boundValue()).toEqual({ name: 'Ada' });
+  });
+
+  it('ignores custom editors when editing is not permitted', () => {
+    const plugins: ObjectEditorPlugin[] = [
+      {
+        capabilities: {
+          provide: () => ({ editValue: false })
+        },
+        properties: {
+          provide: () => ({ editor: UppercaseEditor })
+        }
+      }
+    ];
+
+    render(ObjectEditor, {
+      value: { name: 'Ada' },
+      plugins
+    });
+
+    expect(
+      screen.queryByRole('button', { name: 'Uppercase name' })
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('Ada')).toBeVisible();
   });
 
   it('updates string, number, and boolean values through the binding', async () => {
@@ -483,6 +535,91 @@ describe('ObjectEditor', () => {
     await user.click(screen.getByRole('button', { name: 'Expand person' }));
 
     expect(screen.getByRole('textbox', { name: 'person.name' })).toBeVisible();
+  });
+
+  it('searches paths and values and expands matching branches', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditor, {
+      value: {
+        profile: {
+          name: 'Ada Lovelace'
+        }
+      }
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Collapse profile' }));
+    expect(
+      screen.queryByRole('textbox', { name: 'profile.name' })
+    ).not.toBeInTheDocument();
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search object' }),
+      'Ada'
+    );
+
+    expect(screen.getByText('1 result')).toBeVisible();
+    expect(screen.getByRole('textbox', { name: 'profile.name' })).toBeVisible();
+    expect(
+      screen
+        .getByRole('textbox', { name: 'profile.name' })
+        .closest('[data-soe-node]')
+    ).toHaveAttribute('data-soe-match', 'true');
+  });
+
+  it('navigates search results and focuses the active node', async () => {
+    const user = userEvent.setup();
+    const { container } = render(ObjectEditor, {
+      value: {
+        first: 'match',
+        second: 'match'
+      }
+    });
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search object' }),
+      'match'
+    );
+
+    expect(screen.getByText('2 results')).toBeVisible();
+    await user.click(
+      screen.getByRole('button', { name: 'Next search result' })
+    );
+
+    const second = container.querySelector<HTMLElement>(
+      '[data-soe-path="second"]'
+    );
+    expect(second).toHaveAttribute('data-soe-active-match', 'true');
+    expect(second).toHaveFocus();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Previous search result' })
+    );
+    expect(container.querySelector('[data-soe-path="first"]')).toHaveAttribute(
+      'data-soe-active-match',
+      'true'
+    );
+  });
+
+  it('finds values inside read-only inspected containers', async () => {
+    const user = userEvent.setup();
+
+    render(ObjectEditor, {
+      value: {
+        references: new Map([['engine', 'Analytical Engine']])
+      }
+    });
+
+    await user.click(
+      screen.getByRole('button', { name: 'Collapse references' })
+    );
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search object' }),
+      'analytical'
+    );
+
+    expect(screen.getByText('Analytical Engine')).toBeVisible();
+    expect(screen.getByText('1 result')).toBeVisible();
   });
 
   it('stops at circular references without throwing', () => {

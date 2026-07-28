@@ -9,6 +9,7 @@
     missingRequiredFields,
     objectEntries,
     replaceValueAtPath,
+    searchObject,
     ValueHistory,
     type ObjectSchema,
     type ObjectPath,
@@ -38,6 +39,9 @@
   const history = new ValueHistory(value);
   let synchronizedValue = value;
   let historyRevision = $state(0);
+  let searchQuery = $state('');
+  let activeResultIndex = $state(0);
+  let editorElement: HTMLDivElement;
   const entries = $derived(objectEntries(value));
   const keys = $derived(entries.map((entry) => String(entry.key)));
   const missingRequired = $derived(
@@ -48,6 +52,13 @@
       properties: {},
       plugins
     })
+  );
+  const searchResults = $derived(searchObject(value, searchQuery));
+  const matchPaths = $derived(
+    searchResults.map((result) => result.formattedPath)
+  );
+  const activeMatchPath = $derived(
+    searchResults[activeResultIndex]?.formattedPath
   );
   const rootCapabilities = $derived(
     pluginHost.resolve({
@@ -123,12 +134,37 @@
     return typeof key === 'number' ? `[${key}]` : key;
   }
 
+  function moveSearchResult(offset: number): void {
+    if (!searchResults.length) return;
+
+    const nextIndex =
+      (activeResultIndex + offset + searchResults.length) %
+      searchResults.length;
+    const targetPath = searchResults[nextIndex]?.formattedPath;
+    activeResultIndex = nextIndex;
+
+    queueMicrotask(() => {
+      if (!editorElement || !targetPath) return;
+      const match = [
+        ...editorElement.querySelectorAll<HTMLElement>('[data-soe-path]')
+      ].find((element) => element.dataset.soePath === targetPath);
+      match?.focus();
+      match?.scrollIntoView?.({ block: 'nearest' });
+    });
+  }
+
   $effect(() => {
     if (value !== synchronizedValue) {
       history.reset(value);
       synchronizedValue = value;
       historyRevision += 1;
     }
+  });
+
+  $effect(() => {
+    void searchQuery;
+    void searchResults.length;
+    activeResultIndex = 0;
   });
 </script>
 
@@ -139,6 +175,7 @@
   role="group"
   aria-label="Object editor"
   onkeydown={handleKeydown}
+  bind:this={editorElement}
 >
   <div class="history-controls" data-soe-history>
     <button
@@ -155,6 +192,36 @@
       aria-label="Redo"
       aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z Control+Y Meta+Y"
       >Redo</button
+    >
+  </div>
+  <div class="search-controls" data-soe-search>
+    <label>
+      <span>Search</span>
+      <input
+        type="search"
+        aria-label="Search object"
+        placeholder="Path or value"
+        bind:value={searchQuery}
+      />
+    </label>
+    <output aria-live="polite">
+      {searchQuery
+        ? `${searchResults.length} ${
+            searchResults.length === 1 ? 'result' : 'results'
+          }`
+        : ''}
+    </output>
+    <button
+      type="button"
+      aria-label="Previous search result"
+      disabled={!searchResults.length}
+      onclick={() => moveSearchResult(-1)}>↑</button
+    >
+    <button
+      type="button"
+      aria-label="Next search result"
+      disabled={!searchResults.length}
+      onclick={() => moveSearchResult(1)}>↓</button
     >
   </div>
   {#if missingRequired.length}
@@ -177,6 +244,9 @@
         parentValue={value}
         fieldSchema={schema?.fields[String(entry.key)]}
         {pluginHost}
+        {matchPaths}
+        {activeMatchPath}
+        searchActive={Boolean(searchQuery)}
         onupdate={update}
         onoperation={operate}
       />
@@ -221,6 +291,48 @@
     justify-content: flex-end;
     padding: 0.35rem 0.5rem;
     border-bottom: 1px solid var(--soe-border, #d9dee7);
+  }
+
+  .search-controls {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) auto auto auto;
+    gap: 0.35rem;
+    align-items: center;
+    padding: 0.45rem 0.5rem;
+    border-bottom: 1px solid var(--soe-border, #d9dee7);
+  }
+
+  .search-controls label {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .search-controls input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 0.3rem 0.45rem;
+    color: inherit;
+    font: inherit;
+    background: transparent;
+    border: 1px solid var(--soe-border, #d9dee7);
+    border-radius: 0.25rem;
+  }
+
+  .search-controls output {
+    color: var(--soe-muted, #667085);
+    font-size: 0.75rem;
+  }
+
+  .search-controls button {
+    padding: 0.25rem 0.45rem;
+    color: var(--soe-muted, #667085);
+    font: inherit;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
   }
 
   .history-controls button {
