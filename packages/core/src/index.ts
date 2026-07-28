@@ -22,6 +22,11 @@ export {
 export type { InspectionEntry } from './object-inspection.js';
 export { searchObject } from './object-search.js';
 export type { ObjectSearchResult } from './object-search.js';
+export { validateObject } from './object-validation.js';
+export type {
+  ValidationIssue,
+  ValidationIssueCode
+} from './object-validation.js';
 export {
   formatObjectPath,
   replaceValueAtPath,
