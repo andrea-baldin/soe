@@ -627,6 +627,111 @@ describe('ObjectEditor', () => {
     expect(screen.getByText('1 result')).toBeVisible();
   });
 
+  it('filters search by scope, type, and validation severity', async () => {
+    const user = userEvent.setup();
+    render(ObjectEditor, {
+      value: { active: true, label: 'active', score: 10 },
+      schema: {
+        fields: {
+          score: {
+            severity: 'warning',
+            validate: () => 'Review score'
+          }
+        }
+      }
+    });
+
+    await user.click(screen.getByText('Search and replace'));
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search object' }),
+      '10'
+    );
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Search type' }),
+      'number'
+    );
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Search validation' }),
+      'warnings'
+    );
+
+    expect(screen.getByText('1 result')).toBeVisible();
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Search scope' }),
+      'path'
+    );
+    expect(screen.getByText('0 results')).toBeVisible();
+  });
+
+  it('previews and replaces all editable matches as one undo revision', async () => {
+    const user = userEvent.setup();
+    render(ObjectEditorHarness, {
+      initial: {
+        title: 'Ada and ADA',
+        profile: { name: 'Ada' }
+      }
+    });
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search object' }),
+      'ada'
+    );
+    await user.click(screen.getByText('Search and replace'));
+    await user.type(
+      screen.getByRole('textbox', { name: 'Replacement value' }),
+      'Grace'
+    );
+
+    expect(screen.getByText('2 replacements available')).toBeVisible();
+    expect(
+      screen.getByRole('list', { name: 'Replacement preview' })
+    ).toHaveTextContent('Grace');
+
+    await user.click(screen.getByRole('button', { name: 'Replace all' }));
+    expect(boundValue()).toEqual({
+      title: 'Grace and Grace',
+      profile: { name: 'Grace' }
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(boundValue()).toEqual({
+      title: 'Ada and ADA',
+      profile: { name: 'Ada' }
+    });
+  });
+
+  it('excludes matches denied by edit capabilities from bulk replacement', async () => {
+    const user = userEvent.setup();
+    const plugins: ObjectEditorPlugin[] = [
+      {
+        capabilities: {
+          provide: (context) =>
+            context.path.join('.') === 'locked'
+              ? { editValue: false }
+              : undefined
+        }
+      }
+    ];
+    render(ObjectEditorHarness, {
+      initial: { editable: 'Ada', locked: 'Ada' },
+      plugins
+    });
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search object' }),
+      'ada'
+    );
+    await user.click(screen.getByText('Search and replace'));
+    await user.type(
+      screen.getByRole('textbox', { name: 'Replacement value' }),
+      'Grace'
+    );
+
+    expect(screen.getByText('1 replacement available')).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Replace all' }));
+    expect(boundValue()).toEqual({ editable: 'Grace', locked: 'Ada' });
+  });
+
   it('stops at circular references without throwing', () => {
     const recursive: Record<string, unknown> = { name: 'root' };
     recursive.self = recursive;
