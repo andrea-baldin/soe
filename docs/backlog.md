@@ -4,7 +4,7 @@ The backlog records ideas without committing them to the public API.
 
 - Object paths and stable node identities
 - Role-based and asynchronous permission providers
-- Asynchronous validation reports, cancellation, and server diagnostics
+- Validation scheduling adapters and application-specific debounce policies
 - Concrete property catalogs and providers
 - Additional renderer properties backed by concrete use cases
 - Primitive paste and container merge strategies

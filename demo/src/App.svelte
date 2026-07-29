@@ -12,6 +12,7 @@
   let value = $state<Record<string, unknown>>({
     age: 36,
     active: true,
+    username: 'ada',
     profile: {
       name: 'Ada Lovelace',
       nickname: null,
@@ -43,6 +44,20 @@
             Number(value) >= 40 ? undefined : 'Ages below 40 are highlighted',
           messages: {
             type: 'Age must be a number'
+          }
+        },
+        username: {
+          type: 'string',
+          async validateAsync(value, { signal }) {
+            await new Promise((resolve) => setTimeout(resolve, 350));
+            if (signal.aborted) return undefined;
+            return String(value).toLowerCase() === 'admin'
+              ? {
+                  code: 'reserved-username',
+                  message: 'This username is reserved',
+                  severity: 'error'
+                }
+              : undefined;
           }
         },
         profile: {

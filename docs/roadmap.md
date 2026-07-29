@@ -203,6 +203,13 @@
 - Deterministic normalization, immutability, and deduplication
 - Complete recursive report, inline semantics, tests, and RFC
 
+## Milestone 19 — Production validation workflow
+
+- Explicit cancellable asynchronous field validators
+- Stale-result prevention and accessible pending state
+- External server diagnostics merged into the standard report
+- Core, Svelte, demo, concurrency tests, packaging, and RFC
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom
