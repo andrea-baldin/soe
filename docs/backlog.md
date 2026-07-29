@@ -12,6 +12,7 @@ The backlog records ideas without committing them to the public API.
 - Alternate renderers
 - Named editor registries and asynchronous editor loading
 - Localization and theming
+- Dynamic default factories and remote option providers
 - Inherited properties, weak collections, and opt-in getter evaluation
 
 An item moves from this list only when it is needed by the current milestone,

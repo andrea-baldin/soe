@@ -27,7 +27,7 @@ describe('schemaCapabilityProvider', () => {
     });
   });
 
-  it('applies explicit key and object structure policies', () => {
+  it('keeps known-field insertion available while applying key policies', () => {
     const root = { profile: { name: 'Ada' } };
 
     expect(
@@ -44,7 +44,7 @@ describe('schemaCapabilityProvider', () => {
       })
     ).toMatchObject({
       delete: false,
-      insert: false,
+      insert: true,
       renameKey: false
     });
   });

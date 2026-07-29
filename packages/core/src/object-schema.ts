@@ -3,12 +3,17 @@
  */
 
 import type { ObjectPath } from './object-path.js';
-import { objectValueKind, type ObjectValueKind } from './object-value.js';
+import {
+  objectValueKind,
+  type EditableValue,
+  type ObjectValueKind
+} from './object-value.js';
 
 export type SchemaValueType = 'boolean' | 'number' | 'string';
 export type ValidationSeverity = 'error' | 'warning';
 export type ValidationMessageKey =
   | 'asyncValidatorFailure'
+  | 'enum'
   | 'maximum'
   | 'maximumLength'
   | 'minimum'
@@ -54,6 +59,8 @@ export type AsyncFieldValidator = (
 
 export interface FieldSchema {
   readonly additionalProperties?: boolean;
+  readonly defaultValue?: unknown;
+  readonly enum?: readonly EditableValue[];
   readonly type?: SchemaValueType;
   readonly maximumItems?: number;
   readonly maximum?: number;
@@ -270,6 +277,13 @@ function declarativeValidationMessage(
     return schema.messages?.type ?? `Expected ${schema.type}`;
   }
 
+  if (
+    schema.enum?.length &&
+    !schema.enum.some((entry) => Object.is(entry, value))
+  ) {
+    return schema.messages?.enum ?? 'Expected one of the allowed values';
+  }
+
   if (typeof value === 'number') {
     if (schema.minimum !== undefined && value < schema.minimum) {
       return schema.messages?.minimum ?? `Must be at least ${schema.minimum}`;
@@ -412,6 +426,10 @@ function mergeFields(
 function stableFieldSchema(schema: FieldSchema): FieldSchema {
   return Object.freeze({
     ...schema,
+    ...(Object.hasOwn(schema, 'defaultValue')
+      ? { defaultValue: stableSchemaValue(schema.defaultValue) }
+      : {}),
+    enum: schema.enum ? Object.freeze([...schema.enum]) : undefined,
     fields: schema.fields ? mergeFields(undefined, schema.fields) : undefined,
     items: schema.items ? stableFieldSchema(schema.items) : undefined,
     messages: mergeMessages(undefined, schema.messages),
@@ -449,4 +467,33 @@ function mergeMessages(
 ): ValidationMessages | undefined {
   if (!base && !override) return undefined;
   return Object.freeze({ ...base, ...override });
+}
+
+function stableSchemaValue(value: unknown): unknown {
+  if (
+    value === null ||
+    typeof value === 'boolean' ||
+    typeof value === 'number' ||
+    typeof value === 'string' ||
+    value === undefined
+  ) {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return Object.freeze(value.map(stableSchemaValue));
+  }
+  if (
+    typeof value === 'object' &&
+    Object.getPrototypeOf(value) === Object.prototype
+  ) {
+    return Object.freeze(
+      Object.fromEntries(
+        Object.entries(value).map(([key, entry]) => [
+          key,
+          stableSchemaValue(entry)
+        ])
+      )
+    );
+  }
+  return value;
 }

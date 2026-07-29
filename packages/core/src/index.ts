@@ -67,6 +67,11 @@ export {
   validateFieldDiagnostics
 } from './object-schema.js';
 export { schemaCapabilityProvider } from './schema-capability-provider.js';
+export {
+  schemaFieldSuggestions,
+  schemaInitialValue
+} from './schema-authoring.js';
+export type { SchemaFieldSuggestion } from './schema-authoring.js';
 export type {
   AsyncFieldValidationContext,
   AsyncFieldValidator,

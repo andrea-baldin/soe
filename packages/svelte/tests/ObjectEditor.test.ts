@@ -1106,6 +1106,96 @@ describe('ObjectEditor', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('inserts missing schema fields with typed defaults', async () => {
+    const user = userEvent.setup();
+    render(ObjectEditorHarness, {
+      initial: { profile: {} },
+      schema: {
+        fields: {
+          profile: {
+            additionalProperties: false,
+            fields: {
+              name: {
+                required: true,
+                type: 'string',
+                defaultValue: 'Ada'
+              },
+              active: { type: 'boolean' }
+            }
+          }
+        }
+      }
+    });
+
+    expect(
+      screen.queryByRole('button', { name: 'Add property to profile' })
+    ).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Add required property name to profile'
+      })
+    );
+    expect(boundValue()).toEqual({ profile: { name: 'Ada' } });
+
+    await user.click(
+      screen.getByRole('button', { name: 'Add property active to profile' })
+    );
+    expect(boundValue()).toEqual({
+      profile: { name: 'Ada', active: false }
+    });
+  });
+
+  it('renders enum choices and records selection changes', async () => {
+    const user = userEvent.setup();
+    render(ObjectEditorHarness, {
+      initial: { status: 'draft' },
+      schema: {
+        fields: {
+          status: {
+            enum: ['draft', 'published']
+          }
+        }
+      }
+    });
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'status' }),
+      'published'
+    );
+    expect(boundValue()).toEqual({ status: 'published' });
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(boundValue()).toEqual({ status: 'draft' });
+  });
+
+  it('appends fresh array items from schema templates', async () => {
+    const user = userEvent.setup();
+    render(ObjectEditorHarness, {
+      initial: { tasks: [] },
+      schema: {
+        fields: {
+          tasks: {
+            items: {
+              defaultValue: { title: 'New task', done: false }
+            }
+          }
+        }
+      }
+    });
+
+    await user.click(
+      screen.getByRole('button', { name: 'Append item to tasks' })
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'Append item to tasks' })
+    );
+    expect(boundValue()).toEqual({
+      tasks: [
+        { title: 'New task', done: false },
+        { title: 'New task', done: false }
+      ]
+    });
+  });
+
   it('enforces schema key, object, and array structure policies', () => {
     render(ObjectEditor, {
       value: {

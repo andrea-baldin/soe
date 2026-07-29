@@ -7,8 +7,6 @@ import type {
   CapabilityContribution,
   CapabilityProvider
 } from './capability-resolver.js';
-import { isEditableContainer } from './object-container.js';
-
 type MutableContribution = {
   -readonly [Capability in keyof Capabilities]?: Capabilities[Capability];
 };
@@ -31,14 +29,6 @@ export const schemaCapabilityProvider: CapabilityProvider = {
 
     if (schema?.removable === false) contribution.delete = false;
     if (schema?.renameable === false) contribution.renameKey = false;
-
-    if (
-      isEditableContainer(context.value) &&
-      !Array.isArray(context.value) &&
-      schema?.additionalProperties === false
-    ) {
-      contribution.insert = false;
-    }
 
     if (
       Array.isArray(context.value) &&

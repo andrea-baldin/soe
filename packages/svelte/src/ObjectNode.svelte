@@ -14,6 +14,8 @@
     objectEntries,
     objectValueKind,
     resolveFieldSchema,
+    schemaFieldSuggestions,
+    schemaInitialValue,
     validateFieldDiagnostics,
     type EditableValue,
     type FieldSchema,
@@ -96,6 +98,9 @@
       : []
   );
   const childKeys = $derived(entries.map((entry) => String(entry.key)));
+  const childSuggestions = $derived(
+    schemaFieldSuggestions(value, fieldSchema?.fields)
+  );
   const nodePath = $derived(formatObjectPath(path));
   const matched = $derived(matchPaths.includes(nodePath));
   const activeMatch = $derived(activeMatchPath === nodePath);
@@ -120,6 +125,10 @@
   const validationId = $derived(`${fieldId}-validation`);
   const descriptionId = $derived(`${fieldId}-description`);
   const schemaType = $derived(fieldSchema?.type);
+  const enumValues = $derived(fieldSchema?.enum ?? []);
+  const enumIndex = $derived(
+    enumValues.findIndex((entry) => Object.is(entry, value))
+  );
   const validationDiagnostics = $derived(
     validateFieldDiagnostics(value, fieldSchema, { path, root })
   );
@@ -268,7 +277,22 @@
   }
 
   function appendArrayItem(): void {
-    onoperation({ type: 'array.append', path });
+    const itemSchema = mergeFieldSchemas(
+      fieldSchema?.items,
+      fieldSchema?.prefixItems?.[Array.isArray(value) ? value.length : 0]
+    );
+    onoperation({
+      type: 'array.append',
+      path,
+      value: schemaInitialValue(itemSchema)
+    });
+  }
+
+  function updateEnum(event: Event): void {
+    const index = Number((event.currentTarget as HTMLSelectElement).value);
+    if (Number.isInteger(index) && index >= 0 && index < enumValues.length) {
+      update(enumValues[index] as EditableValue);
+    }
   }
 
   function childSchema(
@@ -380,7 +404,13 @@
             >
           </div>
         {:else if !Array.isArray(value) && capabilities.insert}
-          <AddProperty {path} existingKeys={childKeys} {onoperation} />
+          <AddProperty
+            {path}
+            existingKeys={childKeys}
+            suggestions={childSuggestions}
+            allowAdditional={fieldSchema?.additionalProperties !== false}
+            {onoperation}
+          />
         {/if}
       </div>
     {/if}
@@ -422,6 +452,27 @@
               commit={(replacement) => onupdate(path, replacement)}
             />
           </div>
+        {:else if enumValues.length}
+          <select
+            id={fieldId}
+            aria-label={nodePath}
+            aria-invalid={validationIsError}
+            aria-describedby={[
+              description ? descriptionId : undefined,
+              validationMessage ? validationId : undefined
+            ]
+              .filter(Boolean)
+              .join(' ') || undefined}
+            value={enumIndex}
+            onchange={updateEnum}
+          >
+            {#if enumIndex < 0}
+              <option value={-1} disabled>Choose a value</option>
+            {/if}
+            {#each enumValues as option, index (index)}
+              <option value={index}>{formatObjectValue(option)}</option>
+            {/each}
+          </select>
         {:else if !schemaType && value === null}
           <select
             id={fieldId}

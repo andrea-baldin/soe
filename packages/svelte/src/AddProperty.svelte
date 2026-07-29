@@ -5,6 +5,7 @@
   import {
     formatObjectPath,
     type ObjectPath,
+    type SchemaFieldSuggestion,
     type StructuralOperation
   } from '@andreabaldin/soe-core';
 
@@ -13,10 +14,14 @@
   let {
     path,
     existingKeys,
+    suggestions = [],
+    allowAdditional = true,
     onoperation
   }: {
     path: ObjectPath;
     existingKeys: readonly string[];
+    suggestions?: readonly SchemaFieldSuggestion[];
+    allowAdditional?: boolean;
     onoperation: OperationHandler;
   } = $props();
 
@@ -59,9 +64,31 @@
     });
     cancel();
   }
+
+  function insertSuggested(suggestion: SchemaFieldSuggestion): void {
+    onoperation({
+      type: 'object.insert',
+      path,
+      key: suggestion.key,
+      value: suggestion.value
+    });
+  }
 </script>
 
 <div class="add-property" data-soe-add-property>
+  {#if suggestions.length}
+    <div class="suggestions" aria-label={`Suggested properties in ${location}`}>
+      {#each suggestions as suggestion (suggestion.key)}
+        <button
+          type="button"
+          aria-label={`Add ${suggestion.required ? 'required ' : ''}property ${suggestion.key} to ${location}`}
+          onclick={() => insertSuggested(suggestion)}
+        >
+          + {suggestion.key}{suggestion.required ? ' *' : ''}
+        </button>
+      {/each}
+    </div>
+  {/if}
   {#if adding}
     <form onsubmit={insert}>
       <input
@@ -76,7 +103,7 @@
         <span id={`${addId}-error`} role="alert">{error}</span>
       {/if}
     </form>
-  {:else}
+  {:else if allowAdditional}
     <button
       type="button"
       class="start"
@@ -90,6 +117,13 @@
   .add-property {
     padding: 0.35rem 0.5rem;
     border-bottom: 1px solid var(--soe-border, #d9dee7);
+  }
+
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.35rem;
   }
 
   form {

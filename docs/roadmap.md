@@ -217,6 +217,13 @@
 - Capability-safe replacement preview and immutable bulk application
 - Replace-current, atomic replace-all, single undo, demo, tests, and RFC
 
+## Milestone 21 — Schema-guided authoring
+
+- Immutable defaults, finite enum choices, and structural item templates
+- Missing known and required-field suggestions
+- Known insertion with closed-object additional-property policy
+- Standard select editors, array templates, history, demo, tests, and RFC
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom

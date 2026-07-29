@@ -15,6 +15,7 @@
     replaceValueAtPath,
     resolveFieldSchema,
     schemaCapabilityProvider,
+    schemaFieldSuggestions,
     searchObject,
     validateObject,
     validateObjectAsync,
@@ -72,6 +73,9 @@
   const rootSchema = $derived(resolveFieldSchema(schema, value, value, []));
   const missingRequired = $derived(
     missingRequiredFields(value, rootSchema?.fields)
+  );
+  const rootSuggestions = $derived(
+    schemaFieldSuggestions(value, rootSchema?.fields)
   );
   const missingRequiredHasError = $derived(
     missingRequired.some(
@@ -573,7 +577,13 @@
       <p class="empty-state">Empty object</p>
     {/each}
     {#if rootCapabilities.insert}
-      <AddProperty path={[]} existingKeys={keys} onoperation={operate} />
+      <AddProperty
+        path={[]}
+        existingKeys={keys}
+        suggestions={rootSuggestions}
+        allowAdditional={rootSchema?.additionalProperties !== false}
+        onoperation={operate}
+      />
     {/if}
   </div>
 </div>
