@@ -333,6 +333,36 @@ describe('object schema', () => {
     ).toBe('Discount cannot exceed 30%');
   });
 
+  it('validates enum values and composes immutable authoring knowledge', () => {
+    const composed = composeObjectSchemas(
+      schemaForType('string', {
+        enum: ['draft', 'published'],
+        defaultValue: 'draft'
+      }),
+      {
+        fields: {
+          status: {
+            enum: ['published'],
+            messages: { enum: 'Choose a publishable status' }
+          }
+        }
+      }
+    );
+    const resolved = resolveFieldSchema(
+      composed,
+      { status: 'draft' },
+      'draft',
+      ['status']
+    );
+
+    expect(
+      validateField('draft', resolved, { path: ['status'], root: {} })
+    ).toBe('Choose a publishable status');
+    expect(resolved?.defaultValue).toBe('draft');
+    expect(resolved?.enum).toEqual(['published']);
+    expect(Object.isFrozen(resolved?.enum)).toBe(true);
+  });
+
   it('reports missing required own properties without reading values', () => {
     let getterCalls = 0;
     const value = Object.create({ inherited: true }) as Record<string, unknown>;
