@@ -22,10 +22,13 @@ export {
 export type { InspectionEntry } from './object-inspection.js';
 export { searchObject } from './object-search.js';
 export type { ObjectSearchResult } from './object-search.js';
-export { validateObject } from './object-validation.js';
+export { mergeValidationIssues, validateObject } from './object-validation.js';
+export { hasAsyncValidation, validateObjectAsync } from './async-validation.js';
+export type { AsyncValidationOptions } from './async-validation.js';
 export type {
   ValidationIssue,
-  ValidationIssueCode
+  ValidationIssueCode,
+  ValidationIssueInput
 } from './object-validation.js';
 export {
   formatObjectPath,
@@ -51,6 +54,8 @@ export {
 } from './object-schema.js';
 export { schemaCapabilityProvider } from './schema-capability-provider.js';
 export type {
+  AsyncFieldValidationContext,
+  AsyncFieldValidator,
   FieldSchema,
   FieldValidationContext,
   FieldValidationDiagnostic,

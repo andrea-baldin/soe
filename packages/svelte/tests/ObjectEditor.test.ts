@@ -1295,6 +1295,72 @@ describe('ObjectEditor', () => {
     ).toBeVisible();
   });
 
+  it('shows pending async validation and applies the latest result', async () => {
+    let resolveValidation!: (value: {
+      code: string;
+      message: string;
+      severity: 'error';
+    }) => void;
+    const validation = new Promise<{
+      code: string;
+      message: string;
+      severity: 'error';
+    }>((resolve) => (resolveValidation = resolve));
+
+    render(ObjectEditor, {
+      value: { username: 'ada' },
+      schema: {
+        fields: {
+          username: {
+            validateAsync: () => validation
+          }
+        }
+      }
+    });
+
+    expect(screen.getByText('Validating…')).toBeVisible();
+    resolveValidation({
+      code: 'taken',
+      message: 'Username is already used',
+      severity: 'error'
+    });
+
+    expect(
+      await screen.findByRole('button', {
+        name: 'username: Username is already used'
+      })
+    ).toBeVisible();
+    expect(screen.getByRole('textbox', { name: 'username' })).toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
+    expect(screen.queryByText('Validating…')).not.toBeInTheDocument();
+  });
+
+  it('merges external diagnostics into the standard report', () => {
+    render(ObjectEditor, {
+      value: { username: 'ada' },
+      diagnostics: [
+        {
+          code: 'server',
+          message: 'Rejected by the server',
+          path: ['username'],
+          severity: 'error'
+        }
+      ]
+    });
+
+    expect(
+      screen.getByRole('button', {
+        name: 'username: Rejected by the server'
+      })
+    ).toBeVisible();
+    expect(screen.getByRole('textbox', { name: 'username' })).toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
+  });
+
   it('reports and resolves missing required properties', async () => {
     const user = userEvent.setup();
 

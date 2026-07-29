@@ -52,6 +52,7 @@
     activeMatchPath,
     searchActive,
     validationPaths,
+    validationErrorPaths,
     onupdate,
     onoperation
   }: {
@@ -74,6 +75,7 @@
     activeMatchPath?: string;
     searchActive: boolean;
     validationPaths: readonly string[];
+    validationErrorPaths: readonly string[];
     onupdate: UpdateHandler;
     onoperation: OperationHandler;
   } = $props();
@@ -128,7 +130,7 @@
   const validationIsError = $derived(
     validationDiagnostics.some(
       (diagnostic) => diagnostic.severity !== 'warning'
-    )
+    ) || validationErrorPaths.includes(nodePath)
   );
   const missingRequired = $derived(
     Array.isArray(value)
@@ -360,6 +362,7 @@
             {activeMatchPath}
             {searchActive}
             {validationPaths}
+            {validationErrorPaths}
             {onupdate}
             {onoperation}
           />

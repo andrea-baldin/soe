@@ -6,6 +6,8 @@
     applyStructuralOperation,
     createPluginHost,
     formatObjectPath,
+    hasAsyncValidation,
+    mergeValidationIssues,
     missingRequiredFields,
     objectEntries,
     replaceValueAtPath,
@@ -13,10 +15,13 @@
     schemaCapabilityProvider,
     searchObject,
     validateObject,
+    validateObjectAsync,
     ValueHistory,
     type ObjectSchema,
     type ObjectPath,
-    type StructuralOperation
+    type StructuralOperation,
+    type ValidationIssue,
+    type ValidationIssueInput
   } from '@andreabaldin/soe-core';
 
   import AddProperty from './AddProperty.svelte';
@@ -31,10 +36,12 @@
   let {
     value = $bindable(),
     schema,
+    diagnostics = [],
     plugins = []
   }: {
     value: ObjectRecord;
     schema?: ObjectSchema;
+    diagnostics?: readonly ValidationIssueInput[];
     plugins?: readonly ObjectEditorPlugin[];
   } = $props();
 
@@ -43,6 +50,8 @@
   let synchronizedValue = value;
   let historyRevision = $state(0);
   let searchQuery = $state('');
+  let asyncValidationIssues = $state<readonly ValidationIssue[]>([]);
+  let validationPending = $state(false);
   let activeResultIndex = $state(0);
   let editorElement: HTMLDivElement;
   const entries = $derived(objectEntries(value));
@@ -56,7 +65,13 @@
       (key) => rootSchema?.fields?.[key]?.severity !== 'warning'
     )
   );
-  const validationIssues = $derived(validateObject(value, schema));
+  const validationIssues = $derived(
+    mergeValidationIssues(
+      validateObject(value, schema),
+      asyncValidationIssues,
+      diagnostics
+    )
+  );
   const validationErrors = $derived(
     validationIssues.filter((issue) => issue.severity === 'error')
   );
@@ -65,6 +80,11 @@
   );
   const validationPaths = $derived(
     validationIssues.map((issue) => issue.formattedPath)
+  );
+  const validationErrorPaths = $derived(
+    validationIssues
+      .filter((issue) => issue.severity === 'error')
+      .map((issue) => issue.formattedPath)
   );
   const pluginHost = $derived(
     createPluginHost<ObjectEditorNodeProperties>({
@@ -209,6 +229,30 @@
   });
 
   $effect(() => {
+    const currentValue = value;
+    const currentSchema = schema;
+
+    if (!hasAsyncValidation(currentSchema)) {
+      asyncValidationIssues = [];
+      validationPending = false;
+      return;
+    }
+
+    const controller = new AbortController();
+    asyncValidationIssues = [];
+    validationPending = true;
+    void validateObjectAsync(currentValue, currentSchema, {
+      signal: controller.signal
+    }).then((issues) => {
+      if (controller.signal.aborted) return;
+      asyncValidationIssues = issues;
+      validationPending = false;
+    });
+
+    return () => controller.abort();
+  });
+
+  $effect(() => {
     void searchQuery;
     void searchResults.length;
     activeResultIndex = 0;
@@ -304,6 +348,16 @@
       </ul>
     </section>
   {/if}
+  {#if validationPending}
+    <p
+      class="validation-pending"
+      role="status"
+      aria-live="polite"
+      data-soe-validation-pending
+    >
+      Validating…
+    </p>
+  {/if}
   {#if missingRequired.length}
     <p
       class:schema-error={missingRequiredHasError}
@@ -335,6 +389,7 @@
         {activeMatchPath}
         searchActive={Boolean(searchQuery)}
         {validationPaths}
+        {validationErrorPaths}
         onupdate={update}
         onoperation={operate}
       />
@@ -466,6 +521,14 @@
 
   .validation-summary {
     padding: 0.5rem 0.85rem;
+    color: var(--soe-muted, #667085);
+    font-size: 0.8rem;
+    border-bottom: 1px solid var(--soe-border, #d9dee7);
+  }
+
+  .validation-pending {
+    margin: 0;
+    padding: 0.4rem 0.85rem;
     color: var(--soe-muted, #667085);
     font-size: 0.8rem;
     border-bottom: 1px solid var(--soe-border, #d9dee7);
