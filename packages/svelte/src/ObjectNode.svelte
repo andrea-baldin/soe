@@ -14,7 +14,7 @@
     objectEntries,
     objectValueKind,
     resolveFieldSchema,
-    validateField,
+    validateFieldDiagnostics,
     type EditableValue,
     type FieldSchema,
     type ObjectPath,
@@ -118,11 +118,17 @@
   const validationId = $derived(`${fieldId}-validation`);
   const descriptionId = $derived(`${fieldId}-description`);
   const schemaType = $derived(fieldSchema?.type);
+  const validationDiagnostics = $derived(
+    validateFieldDiagnostics(value, fieldSchema, { path, root })
+  );
   const validationMessage = $derived(
-    validateField(value, fieldSchema, { path, root })
+    validationDiagnostics.map((diagnostic) => diagnostic.message).join('. ') ||
+      undefined
   );
   const validationIsError = $derived(
-    Boolean(validationMessage) && fieldSchema?.severity !== 'warning'
+    validationDiagnostics.some(
+      (diagnostic) => diagnostic.severity !== 'warning'
+    )
   );
   const missingRequired = $derived(
     Array.isArray(value)

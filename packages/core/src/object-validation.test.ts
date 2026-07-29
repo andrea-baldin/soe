@@ -113,6 +113,43 @@ describe('validateObject', () => {
     ]);
   });
 
+  it('collects multiple structured diagnostics at one path', () => {
+    expect(
+      validateObject(
+        { score: 120 },
+        {
+          fields: {
+            score: {
+              validate: () => [
+                {
+                  code: 'range',
+                  message: 'Outside the preferred range',
+                  severity: 'warning'
+                },
+                {
+                  code: 'limit',
+                  message: 'Hard limit exceeded',
+                  severity: 'error'
+                }
+              ]
+            }
+          }
+        }
+      )
+    ).toMatchObject([
+      {
+        code: 'range',
+        formattedPath: 'score',
+        severity: 'warning'
+      },
+      {
+        code: 'limit',
+        formattedPath: 'score',
+        severity: 'error'
+      }
+    ]);
+  });
+
   it('validates values discovered through type and wildcard path rules', () => {
     const value = {
       limit: -1,

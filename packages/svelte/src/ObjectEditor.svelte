@@ -291,7 +291,7 @@
         {validationWarnings.length === 1 ? 'warning' : 'warnings'}
       </p>
       <ul>
-        {#each validationIssues as issue (issue.formattedPath)}
+        {#each validationIssues as issue, index (`${issue.formattedPath}:${issue.code}:${index}`)}
           <li data-severity={issue.severity}>
             <button
               type="button"

@@ -9,6 +9,7 @@ import {
   schemaForType,
   schemaWhen,
   validateField,
+  validateFieldDiagnostics,
   type ObjectSchema
 } from './object-schema.js';
 
@@ -251,6 +252,50 @@ describe('object schema', () => {
         context
       )
     ).toBe('Validazione non disponibile');
+  });
+
+  it('normalizes, defaults, freezes, and deduplicates structured diagnostics', () => {
+    const diagnostics = validateFieldDiagnostics(
+      120,
+      {
+        severity: 'warning',
+        validate: () => [
+          { code: 'unusual', message: 'Value is unusually high' },
+          { code: 'unusual', message: 'Value is unusually high' },
+          {
+            code: 'blocked',
+            message: 'Value is not permitted',
+            severity: 'error'
+          }
+        ]
+      },
+      { path: ['value'], root: {} }
+    );
+
+    expect(diagnostics).toEqual([
+      {
+        code: 'unusual',
+        message: 'Value is unusually high',
+        severity: 'warning'
+      },
+      {
+        code: 'blocked',
+        message: 'Value is not permitted',
+        severity: 'error'
+      }
+    ]);
+    expect(Object.isFrozen(diagnostics)).toBe(true);
+    expect(diagnostics.every(Object.isFrozen)).toBe(true);
+    expect(
+      validateField(
+        120,
+        { validate: () => diagnostics },
+        {
+          path: ['value'],
+          root: {}
+        }
+      )
+    ).toBe('Value is unusually high');
   });
 
   it('composes individual validation messages from general to specific schemas', () => {
