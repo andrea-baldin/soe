@@ -189,6 +189,13 @@
 - General type rules composed beneath specific field knowledge
 - Native input attributes, deterministic validation, demo, tests, and RFC
 
+## Milestone 17 — Validation messages
+
+- Declarative messages for constraints, types, required fields, and failures
+- Per-key composition from reusable type schemas to explicit fields
+- Existing English defaults and validator compatibility preserved
+- Localization through schema composition without renderer configuration
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom

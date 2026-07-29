@@ -7,6 +7,18 @@ import { objectValueKind, type ObjectValueKind } from './object-value.js';
 
 export type SchemaValueType = 'boolean' | 'number' | 'string';
 export type ValidationSeverity = 'error' | 'warning';
+export type ValidationMessageKey =
+  | 'maximum'
+  | 'maximumLength'
+  | 'minimum'
+  | 'minimumLength'
+  | 'pattern'
+  | 'required'
+  | 'type'
+  | 'validatorFailure';
+export type ValidationMessages = Readonly<
+  Partial<Record<ValidationMessageKey, string>>
+>;
 
 export interface FieldValidationContext {
   readonly path: ObjectPath;
@@ -27,6 +39,7 @@ export interface FieldSchema {
   readonly minimum?: number;
   readonly minimumItems?: number;
   readonly minimumLength?: number;
+  readonly messages?: ValidationMessages;
   readonly pattern?: RegExp;
   readonly readonly?: boolean;
   readonly removable?: boolean;
@@ -145,6 +158,7 @@ export function mergeFieldSchemas(
     ...override,
     fields: mergeFields(base.fields, override.fields),
     items: mergeFieldSchemas(base.items, override.items),
+    messages: mergeMessages(base.messages, override.messages),
     prefixItems: mergePrefixItems(base.prefixItems, override.prefixItems)
   });
 }
@@ -191,15 +205,15 @@ export function validateField(
   if (!schema) return undefined;
 
   if (schema.type && !matchesType(value, schema.type)) {
-    return `Expected ${schema.type}`;
+    return schema.messages?.type ?? `Expected ${schema.type}`;
   }
 
   if (typeof value === 'number') {
     if (schema.minimum !== undefined && value < schema.minimum) {
-      return `Must be at least ${schema.minimum}`;
+      return schema.messages?.minimum ?? `Must be at least ${schema.minimum}`;
     }
     if (schema.maximum !== undefined && value > schema.maximum) {
-      return `Must be at most ${schema.maximum}`;
+      return schema.messages?.maximum ?? `Must be at most ${schema.maximum}`;
     }
   }
 
@@ -208,16 +222,22 @@ export function validateField(
       schema.minimumLength !== undefined &&
       value.length < schema.minimumLength
     ) {
-      return `Must contain at least ${schema.minimumLength} characters`;
+      return (
+        schema.messages?.minimumLength ??
+        `Must contain at least ${schema.minimumLength} characters`
+      );
     }
     if (
       schema.maximumLength !== undefined &&
       value.length > schema.maximumLength
     ) {
-      return `Must contain at most ${schema.maximumLength} characters`;
+      return (
+        schema.messages?.maximumLength ??
+        `Must contain at most ${schema.maximumLength} characters`
+      );
     }
     if (schema.pattern && !matchesPattern(value, schema.pattern)) {
-      return `Must match ${schema.pattern}`;
+      return schema.messages?.pattern ?? `Must match ${schema.pattern}`;
     }
   }
 
@@ -227,7 +247,9 @@ export function validateField(
     const result = schema.validate(value, context);
     return typeof result === 'string' && result ? result : undefined;
   } catch {
-    return 'Validation could not be completed';
+    return (
+      schema.messages?.validatorFailure ?? 'Validation could not be completed'
+    );
   }
 }
 
@@ -290,6 +312,7 @@ function stableFieldSchema(schema: FieldSchema): FieldSchema {
     ...schema,
     fields: schema.fields ? mergeFields(undefined, schema.fields) : undefined,
     items: schema.items ? stableFieldSchema(schema.items) : undefined,
+    messages: mergeMessages(undefined, schema.messages),
     prefixItems: schema.prefixItems
       ? Object.freeze(schema.prefixItems.map(stableFieldSchema))
       : undefined
@@ -316,4 +339,12 @@ function mergePrefixItems(
       mergeFieldSchemas(base?.[index], override?.[index])
     ).map((schema) => schema ?? Object.freeze({}))
   );
+}
+
+function mergeMessages(
+  base: ValidationMessages | undefined,
+  override: ValidationMessages | undefined
+): ValidationMessages | undefined {
+  if (!base && !override) return undefined;
+  return Object.freeze({ ...base, ...override });
 }
