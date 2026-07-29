@@ -19,6 +19,7 @@
       birthday: new Date('1815-12-10')
     },
     record: [1843, 'Notes on the Analytical Engine', true],
+    tasks: [],
     skills: ['mathematics', 'computing'],
     tags: new Set(['pioneer', 'programmer']),
     references: new Map([['engine', { name: 'Analytical Engine', year: 1837 }]])
@@ -74,6 +75,11 @@
               type: 'string',
               validate: (value) =>
                 String(value).trim() ? undefined : 'Name is required'
+            },
+            role: {
+              required: true,
+              enum: ['author', 'reviewer'],
+              defaultValue: 'author'
             }
           }
         },
@@ -89,6 +95,14 @@
             { type: 'string', readonly: false },
             { type: 'boolean' }
           ]
+        },
+        tasks: {
+          items: {
+            defaultValue: {
+              title: 'New task',
+              done: false
+            }
+          }
         }
       }
     }
