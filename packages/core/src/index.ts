@@ -46,12 +46,15 @@ export {
   schemaForPath,
   schemaForType,
   schemaWhen,
-  validateField
+  validateField,
+  validateFieldDiagnostics
 } from './object-schema.js';
 export { schemaCapabilityProvider } from './schema-capability-provider.js';
 export type {
   FieldSchema,
   FieldValidationContext,
+  FieldValidationDiagnostic,
+  FieldValidationResult,
   FieldValidator,
   ObjectSchema,
   SchemaPathPattern,

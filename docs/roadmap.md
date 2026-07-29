@@ -196,6 +196,13 @@
 - Existing English defaults and validator compatibility preserved
 - Localization through schema composition without renderer configuration
 
+## Milestone 18 — Structured validation diagnostics
+
+- Backward-compatible string and structured validator results
+- Multiple coded error and warning diagnostics per field
+- Deterministic normalization, immutability, and deduplication
+- Complete recursive report, inline semantics, tests, and RFC
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom

@@ -4,13 +4,13 @@
 
 import {
   resolveFieldSchema,
-  validateField,
+  validateFieldDiagnostics,
   type FieldSchema,
   type ObjectSchema
 } from './object-schema.js';
 import { formatObjectPath, type ObjectPath } from './object-path.js';
 
-export type ValidationIssueCode = 'invalid' | 'required';
+export type ValidationIssueCode = string;
 
 export interface ValidationIssue {
   readonly code: ValidationIssueCode;
@@ -47,9 +47,18 @@ function validateValue(
     path,
     parentSchema
   );
-  const message = validateField(value, schema, { path, root });
-  if (message) {
-    issues.push(issue('invalid', path, message, schema?.severity ?? 'error'));
+  for (const diagnostic of validateFieldDiagnostics(value, schema, {
+    path,
+    root
+  })) {
+    issues.push(
+      issue(
+        diagnostic.code,
+        path,
+        diagnostic.message,
+        diagnostic.severity ?? schema?.severity ?? 'error'
+      )
+    );
   }
 
   if (typeof value !== 'object' || value === null) return;

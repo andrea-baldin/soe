@@ -1261,6 +1261,40 @@ describe('ObjectEditor', () => {
     expect(screen.getByText('Discount cannot exceed 30%')).toBeVisible();
   });
 
+  it('renders multiple diagnostics for the same field', () => {
+    render(ObjectEditor, {
+      value: { score: 120 },
+      schema: {
+        fields: {
+          score: {
+            validate: () => [
+              {
+                code: 'unusual',
+                message: 'Score is unusual',
+                severity: 'warning'
+              },
+              {
+                code: 'limit',
+                message: 'Score exceeds the hard limit',
+                severity: 'error'
+              }
+            ]
+          }
+        }
+      }
+    });
+
+    expect(screen.getByText('1 error, 1 warning')).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: 'score: Score is unusual' })
+    ).toBeVisible();
+    expect(
+      screen.getByRole('button', {
+        name: 'score: Score exceeds the hard limit'
+      })
+    ).toBeVisible();
+  });
+
   it('reports and resolves missing required properties', async () => {
     const user = userEvent.setup();
 

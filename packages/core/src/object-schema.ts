@@ -25,10 +25,22 @@ export interface FieldValidationContext {
   readonly root: unknown;
 }
 
+export interface FieldValidationDiagnostic {
+  readonly code: string;
+  readonly message: string;
+  readonly severity?: ValidationSeverity;
+}
+
+export type FieldValidationResult =
+  | string
+  | FieldValidationDiagnostic
+  | readonly FieldValidationDiagnostic[]
+  | undefined;
+
 export type FieldValidator = (
   value: unknown,
   context: FieldValidationContext
-) => string | undefined;
+) => FieldValidationResult;
 
 export interface FieldSchema {
   readonly additionalProperties?: boolean;
@@ -202,8 +214,47 @@ export function validateField(
   schema: FieldSchema | undefined,
   context: FieldValidationContext
 ): string | undefined {
-  if (!schema) return undefined;
+  return validateFieldDiagnostics(value, schema, context)[0]?.message;
+}
 
+export function validateFieldDiagnostics(
+  value: unknown,
+  schema: FieldSchema | undefined,
+  context: FieldValidationContext
+): readonly FieldValidationDiagnostic[] {
+  if (!schema) return [];
+
+  const message = declarativeValidationMessage(value, schema);
+  if (message) {
+    return stableDiagnostics([
+      { code: 'invalid', message, severity: schema.severity }
+    ]);
+  }
+
+  if (!schema.validate) return [];
+
+  try {
+    return normalizeValidationResult(
+      schema.validate(value, context),
+      schema.severity
+    );
+  } catch {
+    return stableDiagnostics([
+      {
+        code: 'invalid',
+        message:
+          schema.messages?.validatorFailure ??
+          'Validation could not be completed',
+        severity: schema.severity
+      }
+    ]);
+  }
+}
+
+function declarativeValidationMessage(
+  value: unknown,
+  schema: FieldSchema
+): string | undefined {
   if (schema.type && !matchesType(value, schema.type)) {
     return schema.messages?.type ?? `Expected ${schema.type}`;
   }
@@ -241,16 +292,56 @@ export function validateField(
     }
   }
 
-  if (!schema.validate) return undefined;
+  return undefined;
+}
 
-  try {
-    const result = schema.validate(value, context);
-    return typeof result === 'string' && result ? result : undefined;
-  } catch {
-    return (
-      schema.messages?.validatorFailure ?? 'Validation could not be completed'
-    );
-  }
+function normalizeValidationResult(
+  result: FieldValidationResult,
+  defaultSeverity: ValidationSeverity | undefined
+): readonly FieldValidationDiagnostic[] {
+  const candidates =
+    typeof result === 'string'
+      ? result
+        ? [{ code: 'invalid', message: result }]
+        : []
+      : Array.isArray(result)
+        ? result
+        : result
+          ? [result]
+          : [];
+  const seen = new Set<string>();
+
+  return stableDiagnostics(
+    candidates.flatMap((candidate) => {
+      if (
+        !candidate ||
+        typeof candidate.code !== 'string' ||
+        !candidate.code ||
+        typeof candidate.message !== 'string' ||
+        !candidate.message
+      ) {
+        return [];
+      }
+      const severity = candidate.severity ?? defaultSeverity ?? 'error';
+      const key = `${candidate.code}\u0000${candidate.message}\u0000${severity}`;
+      if (seen.has(key)) return [];
+      seen.add(key);
+      return [{ code: candidate.code, message: candidate.message, severity }];
+    })
+  );
+}
+
+function stableDiagnostics(
+  diagnostics: readonly FieldValidationDiagnostic[]
+): readonly FieldValidationDiagnostic[] {
+  return Object.freeze(
+    diagnostics.map((diagnostic) =>
+      Object.freeze({
+        ...diagnostic,
+        severity: diagnostic.severity ?? 'error'
+      })
+    )
+  );
 }
 
 function matchesPattern(value: string, pattern: RegExp): boolean {
