@@ -156,7 +156,8 @@
       </h1>
       <p class="mt-6 max-w-2xl text-lg leading-7 text-slate-600">
         Edit primitive values, change object structure, and reverse changes with
-        undo and redo. Other JavaScript values remain visible and safe to
+        undo and redo. Search, filter, preview, and replace repeated text as one
+        reversible change. Other JavaScript values remain visible and safe to
         inspect.
       </p>
     </header>

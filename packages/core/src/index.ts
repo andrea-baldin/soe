@@ -21,7 +21,21 @@ export {
 } from './object-inspection.js';
 export type { InspectionEntry } from './object-inspection.js';
 export { searchObject } from './object-search.js';
-export type { ObjectSearchResult } from './object-search.js';
+export type {
+  ObjectSearchMode,
+  ObjectSearchQuery,
+  ObjectSearchResult,
+  ObjectSearchScope,
+  ObjectSearchValidationFilter
+} from './object-search.js';
+export {
+  applyObjectReplacements,
+  planObjectReplacements
+} from './object-replacement.js';
+export type {
+  ObjectReplacement,
+  ObjectReplacementOptions
+} from './object-replacement.js';
 export { mergeValidationIssues, validateObject } from './object-validation.js';
 export { hasAsyncValidation, validateObjectAsync } from './async-validation.js';
 export type { AsyncValidationOptions } from './async-validation.js';

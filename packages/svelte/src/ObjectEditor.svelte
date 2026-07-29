@@ -3,6 +3,7 @@
    * ObjectEditor owns the bound root while nodes render paths recursively.
    */
   import {
+    applyObjectReplacements,
     applyStructuralOperation,
     createPluginHost,
     formatObjectPath,
@@ -10,15 +11,21 @@
     mergeValidationIssues,
     missingRequiredFields,
     objectEntries,
+    planObjectReplacements,
     replaceValueAtPath,
     resolveFieldSchema,
     schemaCapabilityProvider,
     searchObject,
     validateObject,
     validateObjectAsync,
+    valueAtPath,
     ValueHistory,
     type ObjectSchema,
     type ObjectPath,
+    type ObjectSearchMode,
+    type ObjectSearchScope,
+    type ObjectSearchValidationFilter,
+    type ObjectValueKind,
     type StructuralOperation,
     type ValidationIssue,
     type ValidationIssueInput
@@ -50,6 +57,12 @@
   let synchronizedValue = value;
   let historyRevision = $state(0);
   let searchQuery = $state('');
+  let searchMode = $state<ObjectSearchMode>('contains');
+  let searchScope = $state<ObjectSearchScope>('all');
+  let searchValidation = $state<ObjectSearchValidationFilter>('all');
+  let searchKind = $state<ObjectValueKind | 'all'>('all');
+  let searchAdvanced = $state(false);
+  let replacementValue = $state('');
   let asyncValidationIssues = $state<readonly ValidationIssue[]>([]);
   let validationPending = $state(false);
   let activeResultIndex = $state(0);
@@ -92,7 +105,25 @@
       plugins: [{ capabilities: schemaCapabilityProvider }, ...plugins]
     })
   );
-  const searchResults = $derived(searchObject(value, searchQuery));
+  const searchResults = $derived(
+    searchObject(value, {
+      query: searchQuery,
+      mode: searchMode,
+      scope: searchScope,
+      kinds: searchKind === 'all' ? undefined : [searchKind],
+      validation: searchValidation,
+      validationIssues
+    })
+  );
+  const replacementPlan = $derived(
+    planObjectReplacements(
+      value,
+      searchResults,
+      searchQuery,
+      replacementValue,
+      { canReplace: canReplaceResult }
+    )
+  );
   const matchPaths = $derived(
     searchResults.map((result) => result.formattedPath)
   );
@@ -197,6 +228,53 @@
     });
   }
 
+  function schemaAtPath(path: ObjectPath) {
+    let parent = rootSchema;
+    for (let length = 1; length <= path.length; length += 1) {
+      const currentPath = path.slice(0, length);
+      parent = resolveFieldSchema(
+        schema,
+        value,
+        valueAtPath(value, currentPath),
+        currentPath,
+        parent
+      );
+    }
+    return parent;
+  }
+
+  function canReplaceResult(result: (typeof searchResults)[number]): boolean {
+    if (typeof result.value !== 'string') return false;
+    const parentPath = result.path.slice(0, -1);
+    return pluginHost.resolve({
+      root: value,
+      value: result.value,
+      parent:
+        result.path.length > 0 ? valueAtPath(value, parentPath) : undefined,
+      path: result.path,
+      schema: schemaAtPath(result.path)
+    }).context.capabilities.editValue;
+  }
+
+  function replaceCurrentResult(): void {
+    const current = searchResults[activeResultIndex];
+    if (!current) return;
+    const plan = planObjectReplacements(
+      value,
+      [current],
+      searchQuery,
+      replacementValue,
+      { canReplace: canReplaceResult }
+    );
+    if (!plan.length) return;
+    commit(applyObjectReplacements(value, plan), 'search-replace');
+  }
+
+  function replaceAllResults(): void {
+    if (!replacementPlan.length) return;
+    commit(applyObjectReplacements(value, replacementPlan), 'search-replace');
+  }
+
   function focusValidationPath(path: ObjectPath): void {
     const target = [...path];
 
@@ -254,6 +332,10 @@
 
   $effect(() => {
     void searchQuery;
+    void searchMode;
+    void searchScope;
+    void searchValidation;
+    void searchKind;
     void searchResults.length;
     activeResultIndex = 0;
   });
@@ -316,6 +398,100 @@
       onclick={() => moveSearchResult(1)}>↓</button
     >
   </div>
+  <details
+    class="search-advanced"
+    data-soe-search-advanced
+    bind:open={searchAdvanced}
+  >
+    <summary>Search and replace</summary>
+    {#if searchAdvanced}
+      <div class="search-options">
+        <label>
+          <span>Scope</span>
+          <select aria-label="Search scope" bind:value={searchScope}>
+            <option value="all">Path and value</option>
+            <option value="path">Path only</option>
+            <option value="value">Value only</option>
+          </select>
+        </label>
+        <label>
+          <span>Type</span>
+          <select aria-label="Search type" bind:value={searchKind}>
+            <option value="all">All types</option>
+            <option value="string">String</option>
+            <option value="number">Number</option>
+            <option value="boolean">Boolean</option>
+            <option value="null">Null</option>
+          </select>
+        </label>
+        <label>
+          <span>Validation</span>
+          <select aria-label="Search validation" bind:value={searchValidation}>
+            <option value="all">All values</option>
+            <option value="issues">Any issue</option>
+            <option value="errors">Errors only</option>
+            <option value="warnings">Warnings only</option>
+          </select>
+        </label>
+        <label class="fuzzy-option">
+          <input
+            type="checkbox"
+            aria-label="Fuzzy search"
+            checked={searchMode === 'fuzzy'}
+            onchange={(event) =>
+              (searchMode = event.currentTarget.checked ? 'fuzzy' : 'contains')}
+          />
+          <span>Fuzzy</span>
+        </label>
+      </div>
+      <div class="replace-controls">
+        <label>
+          <span>Replace with</span>
+          <input
+            type="text"
+            aria-label="Replacement value"
+            bind:value={replacementValue}
+          />
+        </label>
+        <output aria-live="polite">
+          {searchQuery
+            ? `${replacementPlan.length} ${
+                replacementPlan.length === 1 ? 'replacement' : 'replacements'
+              } available`
+            : ''}
+        </output>
+        <button
+          type="button"
+          onclick={replaceCurrentResult}
+          disabled={!searchResults[activeResultIndex] ||
+            !replacementPlan.some(
+              (replacement) => replacement.formattedPath === activeMatchPath
+            )}
+        >
+          Replace current
+        </button>
+        <button
+          type="button"
+          onclick={replaceAllResults}
+          disabled={!replacementPlan.length}
+        >
+          Replace all
+        </button>
+      </div>
+      {#if replacementPlan.length}
+        <ul class="replacement-preview" aria-label="Replacement preview">
+          {#each replacementPlan.slice(0, 5) as replacement (replacement.formattedPath)}
+            <li>
+              <span>{replacement.formattedPath}</span>:
+              <del>{replacement.previousValue}</del>
+              <span aria-hidden="true">→</span>
+              <ins>{replacement.nextValue}</ins>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    {/if}
+  </details>
   {#if validationIssues.length}
     <section
       class="validation-summary"
@@ -476,6 +652,90 @@
     background: transparent;
     border: 1px solid transparent;
     border-radius: 0.25rem;
+  }
+
+  .search-advanced {
+    padding: 0.45rem 0.5rem;
+    color: var(--soe-muted, #667085);
+    font-size: 0.8rem;
+    border-bottom: 1px solid var(--soe-border, #d9dee7);
+  }
+
+  .search-advanced summary {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .search-options,
+  .replace-controls {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+    align-items: end;
+    margin-top: 0.5rem;
+  }
+
+  .search-options label,
+  .replace-controls label {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .search-options select,
+  .replace-controls input,
+  .replace-controls button {
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 0.3rem 0.45rem;
+    color: inherit;
+    font: inherit;
+    background: transparent;
+    border: 1px solid var(--soe-border, #d9dee7);
+    border-radius: 0.25rem;
+  }
+
+  .fuzzy-option {
+    display: flex !important;
+    grid-auto-flow: column;
+    justify-content: start;
+    align-items: center;
+    align-self: center;
+  }
+
+  .replace-controls output {
+    align-self: center;
+  }
+
+  .replace-controls button {
+    cursor: pointer;
+  }
+
+  .replace-controls button:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  .replacement-preview {
+    display: grid;
+    gap: 0.2rem;
+    margin: 0.5rem 0 0;
+    padding-left: 1.25rem;
+  }
+
+  .replacement-preview del {
+    color: var(--soe-error, #b42318);
+  }
+
+  .replacement-preview ins {
+    color: var(--soe-success, #067647);
+    text-decoration: none;
+  }
+
+  @media (max-width: 42rem) {
+    .search-options,
+    .replace-controls {
+      grid-template-columns: 1fr 1fr;
+    }
   }
 
   .history-controls button {

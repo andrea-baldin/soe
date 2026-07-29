@@ -55,4 +55,56 @@ describe('searchObject', () => {
       1
     );
   });
+
+  it('supports fuzzy matching, scopes, kinds, and validation filters', () => {
+    const root = {
+      profile: { displayName: 'Ada Lovelace', score: 10 },
+      status: 'active'
+    };
+    const issues = [
+      {
+        code: 'score',
+        message: 'Review score',
+        path: ['profile', 'score'],
+        severity: 'warning' as const
+      }
+    ];
+
+    expect(
+      searchObject(root, {
+        query: 'dspnm',
+        mode: 'fuzzy',
+        scope: 'path'
+      }).map((result) => result.formattedPath)
+    ).toEqual(['profile.displayName']);
+    expect(
+      searchObject(root, {
+        query: '10',
+        kinds: ['number'],
+        scope: 'value',
+        validation: 'warnings',
+        validationIssues: issues
+      }).map((result) => result.formattedPath)
+    ).toEqual(['profile.score']);
+    expect(
+      searchObject(root, {
+        query: 'active',
+        kinds: ['number']
+      })
+    ).toEqual([]);
+  });
+
+  it('ranks exact and compact matches deterministically', () => {
+    const results = searchObject(
+      { exact: 'ada', later: 'prefix ada', fuzzy: 'a-d-a' },
+      { query: 'ada', mode: 'fuzzy', scope: 'value' }
+    );
+
+    expect(results.map((result) => result.formattedPath)).toEqual([
+      'exact',
+      'later',
+      'fuzzy'
+    ]);
+    expect(results[0]!.score).toBeGreaterThan(results[1]!.score);
+  });
 });

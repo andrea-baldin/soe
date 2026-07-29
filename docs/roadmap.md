@@ -210,6 +210,13 @@
 - External server diagnostics merged into the standard report
 - Core, Svelte, demo, concurrency tests, packaging, and RFC
 
+## Milestone 20 — Advanced search and bulk editing
+
+- Structured contains and fuzzy search with scope and type filters
+- Validation-aware result filtering and deterministic ranking
+- Capability-safe replacement preview and immutable bulk application
+- Replace-current, atomic replace-all, single undo, demo, tests, and RFC
+
 ## Later milestones
 
 Concrete policy and property catalogs, persistent object models, custom
