@@ -7,7 +7,7 @@ npm install @andreabaldin/soe-svelte
 ```
 
 ```svelte
-<script>
+<script lang="ts">
   import { ObjectEditor } from '@andreabaldin/soe-svelte';
 
   let value = $state({
@@ -20,8 +20,21 @@ npm install @andreabaldin/soe-svelte
 <ObjectEditor bind:value />
 ```
 
-The component has a usable standard-CSS presentation and does not require
-Tailwind CSS. Schema knowledge and plugins remain optional.
+`value` is the only required property. Optional schema knowledge, plugins, and
+external diagnostics add guidance without changing the default editor.
+
+```svelte
+<ObjectEditor bind:value {schema} {plugins} {diagnostics} />
+```
+
+SOE supports recursive and structural editing, history, safe inspection,
+validation reports, async validation, custom editors, advanced search and
+capability-safe bulk replacement, and schema-guided insertion.
+
+The component ships standard CSS and requires no styling framework. Customize
+it with CSS variables such as `--soe-surface`, `--soe-text`, `--soe-border`,
+`--soe-focus`, `--soe-error`, and `--soe-warning`. Tailwind CSS is used only by
+the repository demo.
 
 See the [SOE repository](https://github.com/andrea-baldin/soe) for the complete
-documentation and demo.
+schema guide, plugin examples, and architecture records.

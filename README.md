@@ -21,15 +21,10 @@ providing clarity, structure, and guidance without getting in the way.
 
 ## Project status
 
-SOE currently provides recursive and structural editing for plain objects and
-arrays, including property insertion and renaming, item movement, and deletion.
-Strings, finite numbers, booleans, and explicitly initialized null values are
-editable, with undo and redo for both value and structural changes. Unsupported
-JavaScript values and circular references remain safely inspectable. The
-optional schema can override runtime type inference and provide synchronous
-field validation, including missing required properties. The repository also
-contains its framework-independent operations, a demo, interaction tests, and
-the project documents that guide future work.
+SOE provides recursive and structural editing, undo and redo, safe inspection,
+schema composition, synchronous and asynchronous validation, custom editors,
+advanced search and bulk replacement, and schema-guided authoring. Unsupported
+JavaScript values and circular references remain safely inspectable.
 
 ```svelte
 <script lang="ts">
@@ -71,6 +66,10 @@ const schema = composeObjectSchemas(
   })
 );
 ```
+
+See the [schema guide](docs/schema-guide.md) for constraints, diagnostics,
+async validation, policies, enum choices, defaults, tuple schemas, and guided
+insertion.
 
 ## Installation
 
@@ -162,6 +161,11 @@ OIDC publication and release invariants are defined by
 [Release Automation](docs/architecture/RFC-0024-release-automation.md).
 Reusable type and path knowledge is defined by
 [Schema Composition](docs/architecture/RFC-0025-schema-composition.md).
+Tuple schemas, validation severity, declarative constraints, localized
+messages, structured diagnostics, production validation, advanced search, and
+guided authoring are defined by
+[RFC-0026](docs/architecture/RFC-0026-tuple-schemas.md) through
+[RFC-0033](docs/architecture/RFC-0033-schema-guided-authoring.md).
 
 ## Releases
 
