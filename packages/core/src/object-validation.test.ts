@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { validateObject } from './object-validation.js';
+import { mergeValidationIssues, validateObject } from './object-validation.js';
 import {
   composeObjectSchemas,
   schemaForPath,
@@ -148,6 +148,22 @@ describe('validateObject', () => {
         severity: 'error'
       }
     ]);
+  });
+
+  it('merges external issues immutably and removes exact duplicates', () => {
+    const issue = {
+      code: 'server',
+      message: 'Rejected by server',
+      path: ['name'] as const,
+      formattedPath: 'ignored',
+      severity: 'error' as const
+    };
+    const merged = mergeValidationIssues([issue], [issue]);
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0]?.formattedPath).toBe('name');
+    expect(Object.isFrozen(merged)).toBe(true);
+    expect(Object.isFrozen(merged[0]?.path)).toBe(true);
   });
 
   it('validates values discovered through type and wildcard path rules', () => {

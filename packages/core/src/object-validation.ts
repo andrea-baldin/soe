@@ -12,12 +12,15 @@ import { formatObjectPath, type ObjectPath } from './object-path.js';
 
 export type ValidationIssueCode = string;
 
-export interface ValidationIssue {
+export interface ValidationIssueInput {
   readonly code: ValidationIssueCode;
   readonly message: string;
   readonly path: ObjectPath;
-  readonly formattedPath: string;
   readonly severity: 'error' | 'warning';
+}
+
+export interface ValidationIssue extends ValidationIssueInput {
+  readonly formattedPath: string;
 }
 
 export function validateObject(
@@ -29,6 +32,33 @@ export function validateObject(
   const issues: ValidationIssue[] = [];
   validateValue(root, [], root, schema, undefined, [], issues);
   return issues;
+}
+
+export function mergeValidationIssues(
+  ...groups: readonly (readonly ValidationIssueInput[] | undefined)[]
+): readonly ValidationIssue[] {
+  const seen = new Set<string>();
+  return Object.freeze(
+    groups.flatMap((group) =>
+      (group ?? []).flatMap((candidate) => {
+        if (!isValidationIssue(candidate)) return [];
+        const formattedPath = formatObjectPath(candidate.path);
+        const key = `${formattedPath}\u0000${candidate.code}\u0000${candidate.message}\u0000${candidate.severity}`;
+        if (seen.has(key)) return [];
+        seen.add(key);
+        const path = Object.freeze([...candidate.path]);
+        return [
+          Object.freeze({
+            code: candidate.code,
+            message: candidate.message,
+            path,
+            formattedPath: formatObjectPath(path),
+            severity: candidate.severity
+          })
+        ];
+      })
+    )
+  );
 }
 
 function validateValue(
@@ -125,6 +155,19 @@ function hasOwnProperty(value: object, key: string): boolean {
   } catch {
     return false;
   }
+}
+
+function isValidationIssue(value: unknown): value is ValidationIssueInput {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<ValidationIssue>;
+  return (
+    typeof candidate.code === 'string' &&
+    Boolean(candidate.code) &&
+    typeof candidate.message === 'string' &&
+    Boolean(candidate.message) &&
+    Array.isArray(candidate.path) &&
+    (candidate.severity === 'error' || candidate.severity === 'warning')
+  );
 }
 
 function issue(

@@ -8,6 +8,7 @@ import { objectValueKind, type ObjectValueKind } from './object-value.js';
 export type SchemaValueType = 'boolean' | 'number' | 'string';
 export type ValidationSeverity = 'error' | 'warning';
 export type ValidationMessageKey =
+  | 'asyncValidatorFailure'
   | 'maximum'
   | 'maximumLength'
   | 'minimum'
@@ -23,6 +24,10 @@ export type ValidationMessages = Readonly<
 export interface FieldValidationContext {
   readonly path: ObjectPath;
   readonly root: unknown;
+}
+
+export interface AsyncFieldValidationContext extends FieldValidationContext {
+  readonly signal: AbortSignal;
 }
 
 export interface FieldValidationDiagnostic {
@@ -41,6 +46,11 @@ export type FieldValidator = (
   value: unknown,
   context: FieldValidationContext
 ) => FieldValidationResult;
+
+export type AsyncFieldValidator = (
+  value: unknown,
+  context: AsyncFieldValidationContext
+) => Promise<FieldValidationResult>;
 
 export interface FieldSchema {
   readonly additionalProperties?: boolean;
@@ -62,6 +72,7 @@ export interface FieldSchema {
   readonly items?: FieldSchema;
   readonly prefixItems?: readonly FieldSchema[];
   readonly validate?: FieldValidator;
+  readonly validateAsync?: AsyncFieldValidator;
 }
 
 export function inheritFieldSchema(
@@ -234,7 +245,7 @@ export function validateFieldDiagnostics(
   if (!schema.validate) return [];
 
   try {
-    return normalizeValidationResult(
+    return normalizeFieldValidationResult(
       schema.validate(value, context),
       schema.severity
     );
@@ -295,7 +306,7 @@ function declarativeValidationMessage(
   return undefined;
 }
 
-function normalizeValidationResult(
+export function normalizeFieldValidationResult(
   result: FieldValidationResult,
   defaultSeverity: ValidationSeverity | undefined
 ): readonly FieldValidationDiagnostic[] {
