@@ -7,6 +7,28 @@ and the project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-29
+
+### Added
+
+- Tuple schemas with positional `prefixItems` knowledge.
+- Error and warning severity, declarative constraints, localized messages, and
+  multiple structured diagnostics.
+- Cancellable asynchronous validators, pending state, stale-result protection,
+  and external server diagnostics.
+- Schema defaults, enum choices, missing-field suggestions, and array item
+  templates.
+- Structured and fuzzy search with type and validation filters.
+- Capability-safe replacement previews and atomic replace-all history.
+- Complete schema guide and expanded package documentation.
+
+### Changed
+
+- Closed schemas keep known fields insertable while continuing to reject
+  arbitrary property authoring.
+- Validation, search, and authoring APIs expose immutable framework-independent
+  results for alternate renderers.
+
 ## [0.2.0] - 2026-07-28
 
 ### Added
@@ -36,6 +58,7 @@ and the project follows [Semantic Versioning](https://semver.org/).
 - Svelte 5 `@andreabaldin/soe-svelte` package with a standard-CSS interface.
 - Tailwind CSS integration demo without a runtime Tailwind dependency.
 
-[Unreleased]: https://github.com/andrea-baldin/soe/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/andrea-baldin/soe/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/andrea-baldin/soe/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/andrea-baldin/soe/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/andrea-baldin/soe/releases/tag/v0.1.0
